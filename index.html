@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apprentissage du Vocabulaire Arabe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: #f5f5f0;
+            min-height: 100vh;
+            padding: 20px;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border-top: 5px solid #2c5f2d;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c5f2d 0%, #97bc62 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 3px solid #1a3a1b;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .tabs {
+            display: flex;
+            background: #fafaf8;
+            border-bottom: 2px solid #d4d4d0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 18px 20px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 1.05em;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+            font-family: 'Segoe UI', sans-serif;
+            color: #555;
+        }
+
+        .tab:hover {
+            background: #f0f0ec;
+            color: #2c5f2d;
+        }
+
+        .tab.active {
+            background: white;
+            color: #2c5f2d;
+            border-bottom: 3px solid #2c5f2d;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 35px;
+            background: #ffffff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Vocabulaire Tab */
+        .category {
+            margin-bottom: 45px;
+            background: #fafaf8;
+            padding: 25px;
+            border-radius: 2px;
+            border-left: 4px solid #2c5f2d;
+        }
+
+        .category-title {
+            font-size: 1.8em;
+            color: #2c5f2d;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #97bc62;
+            font-family: 'Georgia', serif;
+            font-weight: 600;
+        }
+
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+
+        .vocab-item {
+            background: white;
+            padding: 18px;
+            border-radius: 2px;
+            border: 1px solid #e0e0dc;
+            border-left: 3px solid #97bc62;
+            transition: all 0.2s;
+        }
+
+        .vocab-item:hover {
+            border-left-color: #2c5f2d;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        .arabic-text {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #1a3a1b;
+            margin-bottom: 8px;
+            direction: rtl;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .french-text {
+            color: #666;
+            font-size: 1.05em;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* Flashcards Tab */
+        .flashcard-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 35px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: #fafaf8;
+            border-radius: 2px;
+        }
+
+        .category-btn {
+            padding: 11px 22px;
+            border: 2px solid #2c5f2d;
+            background: white;
+            color: #2c5f2d;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .category-btn:hover {
+            background: #2c5f2d;
+            color: white;
+        }
+
+        .category-btn.active {
+            background: #2c5f2d;
+            color: white;
+            font-weight: 600;
+        }
+
+        .flashcard-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 35px;
+        }
+
+        .flashcard {
+            width: 450px;
+            height: 280px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 2px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            padding: 35px;
+            font-size: 2em;
+            font-weight: 600;
+            border: 3px solid #e0e0dc;
+        }
+
+        .flashcard-front {
+            background: white;
+            color: #2c5f2d;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .flashcard-back {
+            background: linear-gradient(135deg, #2c5f2d 0%, #4a7c59 100%);
+            color: white;
+            transform: rotateY(180deg);
+            direction: rtl;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .flashcard-nav {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            padding: 13px 28px;
+            background: #2c5f2d;
+            color: white;
+            border: none;
+            border-radius: 2px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .nav-btn:hover {
+            background: #1a3a1b;
+        }
+
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .card-counter {
+            font-size: 1.15em;
+            color: #2c5f2d;
+            font-weight: 600;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* Quiz Tab */
+        .quiz-setup {
+            text-align: center;
+        }
+
+        .quiz-setup h2 {
+            color: #2c5f2d;
+            margin-bottom: 35px;
+            font-size: 2.2em;
+            font-weight: 600;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .quiz-option-group {
+            background: #fafaf8;
+            padding: 28px;
+            border-radius: 2px;
+            border: 1px solid #e0e0dc;
+        }
+
+        .quiz-option-group h3 {
+            color: #2c5f2d;
+            margin-bottom: 18px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .quiz-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .start-quiz-btn {
+            padding: 16px 40px;
+            background: #2c5f2d;
+            color: white;
+            border: none;
+            border-radius: 2px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 35px;
+            transition: all 0.3s;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .start-quiz-btn:hover {
+            background: #1a3a1b;
+            box-shadow: 0 4px 12px rgba(44, 95, 45, 0.3);
+        }
+
+        .quiz-game {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        .quiz-progress {
+            background: #fafaf8;
+            padding: 25px;
+            border-radius: 2px;
+            margin-bottom: 35px;
+            border: 1px solid #e0e0dc;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 32px;
+            background: #e8e8e4;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 18px;
+            border: 1px solid #d4d4d0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2c5f2d 0%, #4a7c59 100%);
+            transition: width 0.4s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .quiz-stats {
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.05em;
+            color: #444;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .stat {
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #2c5f2d;
+            font-size: 1.35em;
+            font-weight: 700;
+        }
+
+        .question-card {
+            background: linear-gradient(135deg, #2c5f2d 0%, #4a7c59 100%);
+            color: white;
+            padding: 45px;
+            border-radius: 2px;
+            text-align: center;
+            margin-bottom: 35px;
+            border: 3px solid #1a3a1b;
+        }
+
+        .question-text {
+            font-size: 2.3em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .question-hint {
+            font-size: 1.15em;
+            opacity: 0.92;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .answer-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .answer-btn {
+            padding: 28px;
+            background: white;
+            border: 2px solid #d4d4d0;
+            border-radius: 2px;
+            font-size: 1.3em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #2c3e50;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .answer-btn:hover {
+            border-color: #2c5f2d;
+            background: #fafaf8;
+        }
+
+        .answer-btn.correct {
+            background: #27ae60;
+            color: white;
+            border-color: #27ae60;
+        }
+
+        .answer-btn.incorrect {
+            background: #c0392b;
+            color: white;
+            border-color: #c0392b;
+        }
+
+        .next-question-btn {
+            padding: 14px 38px;
+            background: #2c5f2d;
+            color: white;
+            border: none;
+            border-radius: 2px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: all 0.3s;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .next-question-btn:hover {
+            background: #1a3a1b;
+        }
+
+        .quiz-results {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .results-title {
+            font-size: 2.5em;
+            color: #2c5f2d;
+            margin-bottom: 35px;
+            font-weight: 600;
+        }
+
+        .results-score {
+            font-size: 4.5em;
+            font-weight: 700;
+            color: #2c5f2d;
+            margin-bottom: 25px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .results-message {
+            font-size: 1.4em;
+            color: #555;
+            margin-bottom: 35px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .restart-btn {
+            padding: 16px 40px;
+            background: #2c5f2d;
+            color: white;
+            border: none;
+            border-radius: 2px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .restart-btn:hover {
+            background: #1a3a1b;
+            box-shadow: 0 4px 12px rgba(44, 95, 45, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .flashcard {
+                width: 100%;
+                max-width: 380px;
+            }
+
+            .answer-options {
+                grid-template-columns: 1fr;
+            }
+
+            .vocab-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Apprentissage du Vocabulaire Arabe</h1>
+            <p>Apprenez l'arabe avec des fiches, des cartes mentales et des quiz interactifs</p>
+            <div id="memory-stats" style="margin-top: 20px; font-size: 0.95em; opacity: 0.9;"></div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(0)">📖 Vocabulaire</button>
+            <button class="tab" onclick="switchTab(1)">🎴 Cartes Mentales</button>
+            <button class="tab" onclick="switchTab(2)">🎯 Quiz</button>
+        </div>
+
+        <div class="content">
+            <!-- Tab 1: Vocabulaire -->
+            <div class="tab-content active" id="vocab-tab">
+                <div id="vocabulary-container"></div>
+            </div>
+
+            <!-- Tab 2: Flashcards -->
+            <div class="tab-content" id="flashcards-tab">
+                <div class="flashcard-controls" id="flashcard-categories"></div>
+                <div class="flashcard-container">
+                    <div class="flashcard" id="flashcard" onclick="flipCard()">
+                        <div class="flashcard-inner">
+                            <div class="flashcard-front" id="card-front">
+                                Cliquez pour commencer
+                            </div>
+                            <div class="flashcard-back" id="card-back">
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flashcard-nav">
+                        <button class="nav-btn" onclick="previousCard()" id="prev-btn">← Précédent</button>
+                        <div class="card-counter" id="card-counter">0 / 0</div>
+                        <button class="nav-btn" onclick="nextCard()" id="next-btn">Suivant →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Quiz -->
+            <div class="tab-content" id="quiz-tab">
+                <div class="quiz-setup" id="quiz-setup">
+                    <h2>🎯 Configurez votre Quiz</h2>
+                    <div class="quiz-options">
+                        <div class="quiz-option-group">
+                            <h3>Choisissez une catégorie :</h3>
+                            <div class="quiz-buttons" id="quiz-categories"></div>
+                        </div>
+                    </div>
+                    <button class="start-quiz-btn" onclick="startQuiz()">Commencer le Quiz</button>
+                    <div style="margin-top: 30px;">
+                        <button onclick="resetMemory()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 2px; cursor: pointer; font-size: 0.9em;">
+                            🔄 Réinitialiser les statistiques
+                        </button>
+                    </div>
+                </div>
+
+                <div class="quiz-game" id="quiz-game" style="display: none;">
+                    <div class="quiz-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill">0%</div>
+                        </div>
+                        <div class="quiz-stats">
+                            <div class="stat">
+                                Question: <span class="stat-value" id="current-question">0</span> / <span id="total-questions">0</span>
+                            </div>
+                            <div class="stat">
+                                Correct: <span class="stat-value" id="correct-answers">0</span>
+                            </div>
+                            <div class="stat">
+                                Incorrect: <span class="stat-value" id="incorrect-answers">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question-card">
+                        <div class="question-text" id="question-text"></div>
+                        <div class="question-hint" id="question-hint"></div>
+                    </div>
+
+                    <div class="answer-options" id="answer-options"></div>
+                    <div style="text-align: center;">
+                        <button class="next-question-btn" id="next-question-btn" onclick="nextQuestion()" style="display: none;">
+                            Question Suivante
+                        </button>
+                    </div>
+                </div>
+
+                <div class="quiz-results" id="quiz-results" style="display: none;">
+                    <div class="results-title">🎉 Quiz Terminé !</div>
+                    <div class="results-score" id="final-score"></div>
+                    <div class="results-message" id="results-message"></div>
+                    <button class="restart-btn" onclick="restartQuiz()">Recommencer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Données du vocabulaire
+        const vocabulary = {
+            "Couleurs": [
+                { arabic: "أَحْمَر", french: "rouge (m.)" },
+                { arabic: "حَمْرَاء", french: "rouge (f.)" },
+                { arabic: "أَخْضَر", french: "vert (m.)" },
+                { arabic: "خَضْرَاء", french: "vert (f.)" },
+                { arabic: "أَزْرَق", french: "bleu (m.)" },
+                { arabic: "زَرْقَاء", french: "bleu (f.)" },
+                { arabic: "أَصْفَر", french: "jaune (m.)" },
+                { arabic: "صَفْرَاء", french: "jaune (f.)" },
+                { arabic: "أَسْوَد", french: "noir (m.)" },
+                { arabic: "سَوْدَاء", french: "noir (f.)" },
+                { arabic: "أَبْيَض", french: "blanc (m.)" },
+                { arabic: "بَيْضَاء", french: "blanc (f.)" }
+            ],
+            "Formes": [
+                { arabic: "مُرَبَّع", french: "carré" },
+                { arabic: "مُسْتَطِيل", french: "rectangle" },
+                { arabic: "خَطّ مُسْتَقِيم", french: "ligne droite" },
+                { arabic: "مُثَلَّث", french: "triangle" },
+                { arabic: "دَائِرَة", french: "cercle" }
+            ],
+            "Signes Mathématiques": [
+                { arabic: "زَائِد", french: "plus (+)" },
+                { arabic: "نَاقِص", french: "moins (-)" },
+                { arabic: "فِي", french: "multiplié par (×)" },
+                { arabic: "عَلَى", french: "divisé par (÷)" },
+                { arabic: "يُسَاوِي", french: "égal (=)" },
+                { arabic: "لَا يُسَاوِي", french: "n'est pas égal (≠)" },
+                { arabic: "فِي الْمِئَة", french: "pour cent (%)" }
+            ],
+            "Herbivores": [
+                { arabic: "أَسَد", french: "lion" },
+                { arabic: "بَقَرَة", french: "vache" },
+                { arabic: "بَغْل", french: "mulet" },
+                { arabic: "ثَوْر", french: "taureau" },
+                { arabic: "جَامُوس", french: "buffle" },
+                { arabic: "جَمَل", french: "chameau" },
+                { arabic: "حِصَان", french: "cheval" },
+                { arabic: "حِمَار", french: "âne" },
+                { arabic: "حِمَار وَحْشِي", french: "zèbre" },
+                { arabic: "خَرُوف", french: "mouton" },
+                { arabic: "زَرَافَة", french: "girafe" },
+                { arabic: "سُلَحْفَاة", french: "tortue" },
+                { arabic: "غَزَال", french: "gazelle" },
+                { arabic: "فِيل", french: "éléphant" },
+                { arabic: "قِرْد", french: "singe" },
+                { arabic: "قُنْفُذ", french: "hérisson" },
+                { arabic: "وَحِيد الْقَرْن", french: "rhinocéros" }
+            ],
+            "Carnivores": [
+                { arabic: "تِمْسَاح", french: "crocodile" },
+                { arabic: "ثَعْلَب", french: "renard" },
+                { arabic: "دُبّ", french: "ours" },
+                { arabic: "ذِئْب", french: "loup" },
+                { arabic: "ضَبُع", french: "hyène" },
+                { arabic: "فَهْد", french: "guépard/léopard" },
+                { arabic: "قِطَّة", french: "chatte" },
+                { arabic: "كَلْب", french: "chien" },
+                { arabic: "لَبْوَة", french: "lionne" },
+                { arabic: "نَمِر", french: "tigre" }
+            ],
+            "Oiseaux": [
+                { arabic: "بَبَّغَاء", french: "perroquet" },
+                { arabic: "بَطَّة", french: "canard/cane" },
+                { arabic: "بَطْرِيق", french: "pingouin" },
+                { arabic: "بُومَة", french: "hibou" },
+                { arabic: "حَمَامَة", french: "colombe/pigeon" },
+                { arabic: "خُفَّاش", french: "chauve-souris" },
+                { arabic: "دَجَاجَة", french: "poule" },
+                { arabic: "صَقْر", french: "faucon" },
+                { arabic: "طَاوُوس", french: "paon" },
+                { arabic: "عُصْفُور", french: "moineau/oiseau" },
+                { arabic: "غُرَاب", french: "corbeau" },
+                { arabic: "نَسْر", french: "aigle" },
+                { arabic: "نَعَامَة", french: "autruche" }
+            ],
+            "Insectes": [
+                { arabic: "بَعُوضَة", french: "moustique" },
+                { arabic: "جَرَادَة", french: "sauterelle" },
+                { arabic: "خُنْفُسَاء", french: "coccinelle" },
+                { arabic: "دُودَة", french: "ver" },
+                { arabic: "ذُبَابَة", french: "mouche" },
+                { arabic: "صُرْصُور", french: "cafard" },
+                { arabic: "عَنْكَبُوت", french: "araignée" },
+                { arabic: "فَرَاشَة", french: "papillon" },
+                { arabic: "نَحْلَة", french: "abeille" },
+                { arabic: "نَمْلَة", french: "fourmi" }
+            ],
+            "Vocabulaire Général": [
+                { arabic: "أُذُن", french: "oreille" },
+                { arabic: "إِبْرَة", french: "aiguille" },
+                { arabic: "إِبْرِيق", french: "théière" },
+                { arabic: "بَاب", french: "porte" },
+                { arabic: "بَحْر", french: "mer" },
+                { arabic: "بَطَّانِيَة", french: "couverture" },
+                { arabic: "بَطِّيخ", french: "pastèque" },
+                { arabic: "بُرْج", french: "tour" },
+                { arabic: "بَيْت", french: "maison" },
+                { arabic: "تَمْر", french: "dattes" },
+                { arabic: "تُفَّاح", french: "pomme" },
+                { arabic: "تُوت", french: "mûres" },
+                { arabic: "ثَلَّاجَة", french: "réfrigérateur" },
+                { arabic: "ثُرَيَّا", french: "lustre" },
+                { arabic: "ثُعْبَان", french: "serpent" },
+                { arabic: "ثَوْب", french: "vêtement/robe" },
+                { arabic: "ثُوم", french: "ail" },
+                { arabic: "ثِيَاب", french: "vêtements" },
+                { arabic: "جِسْر", french: "pont" },
+                { arabic: "جُبْن", french: "fromage" },
+                { arabic: "حَافِلَة", french: "bus" },
+                { arabic: "حَقِيبَة", french: "valise/sac" },
+                { arabic: "حُوت", french: "baleine" },
+                { arabic: "خُبْز", french: "pain" },
+                { arabic: "خِيَار", french: "concombre" },
+                { arabic: "دَفْتَر", french: "cahier" },
+                { arabic: "دِيك", french: "coq" },
+                { arabic: "ذَهَب", french: "or" },
+                { arabic: "ذِرَاع", french: "bras" },
+                { arabic: "ذُرَة", french: "maïs" },
+                { arabic: "ذَيْل", french: "queue" },
+                { arabic: "رَنْج", french: "cuisinière" },
+                { arabic: "رُمْح", french: "lance" },
+                { arabic: "رُزّ", french: "riz" },
+                { arabic: "رِيشَة", french: "plume" },
+                { arabic: "زَهْرِيَّة", french: "vase de fleurs" },
+                { arabic: "زُجَاجَة", french: "bouteille" },
+                { arabic: "زَيْت", french: "huile" },
+                { arabic: "زِرّ", french: "bouton" },
+                { arabic: "سَبُّورَة", french: "tableau (noir)" },
+                { arabic: "سَخَّان", french: "chauffe-eau" },
+                { arabic: "سَرِير", french: "lit" },
+                { arabic: "سَمَكَة", french: "poisson" },
+                { arabic: "سَمَّاعَة", french: "casque audio" },
+                { arabic: "سَيَّارَة", french: "voiture" },
+                { arabic: "سِوَاك", french: "siwak (bâton à dents)" },
+                { arabic: "سُوق", french: "marché" },
+                { arabic: "شَجَرَة", french: "arbre" },
+                { arabic: "شَعْر", french: "cheveux" },
+                { arabic: "شَمْعَة", french: "bougie" },
+                { arabic: "شِرَاع", french: "voile (bateau)" },
+                { arabic: "ضَبّ", french: "lézard" },
+                { arabic: "ضَابِط", french: "officier" },
+                { arabic: "ضِرْس", french: "molaire/dent" },
+                { arabic: "ضُفْدَع", french: "grenouille" },
+                { arabic: "طَالِب", french: "étudiant" },
+                { arabic: "طَبِيب", french: "médecin" },
+                { arabic: "طَرِيق", french: "route/chemin" },
+                { arabic: "طَوْق", french: "collier/anneau" },
+                { arabic: "طَيَّار", french: "pilote" },
+                { arabic: "طِفْل", french: "enfant" },
+                { arabic: "طُوبَة", french: "brique" },
+                { arabic: "ظَرْف", french: "enveloppe" },
+                { arabic: "ظِلّ", french: "ombre" },
+                { arabic: "ظُفْر", french: "ongle" },
+                { arabic: "عَيْن", french: "œil" },
+                { arabic: "عِنَب", french: "raisins" },
+                { arabic: "غَمْد", french: "fourreau/gaine" },
+                { arabic: "غُصْن", french: "branche" },
+                { arabic: "فَأْر", french: "souris" },
+                { arabic: "فَدَّاحَة", french: "tournevis" },
+                { arabic: "فَرَاوْلَة", french: "fraise" },
+                { arabic: "فَصْل", french: "classe" },
+                { arabic: "فُلْفُل", french: "poivre/poivron" },
+                { arabic: "فُول", french: "fèves" },
+                { arabic: "قَدَم", french: "pied" },
+                { arabic: "قُفْل", french: "cadenas" },
+                { arabic: "قَلَم", french: "stylo" },
+                { arabic: "قَلْب", french: "cœur" },
+                { arabic: "كَعْبَة", french: "Kaaba" },
+                { arabic: "كِتَاب", french: "livre" },
+                { arabic: "كُمَّثْرَى", french: "poire" },
+                { arabic: "كُوب", french: "verre/tasse" },
+                { arabic: "لَحْم", french: "viande" },
+                { arabic: "لَيْمُون", french: "citron" },
+                { arabic: "لِسَان", french: "langue" },
+                { arabic: "لُوبِيَا", french: "haricots" },
+                { arabic: "مَرِيض", french: "malade" },
+                { arabic: "مَسْجِد", french: "mosquée" },
+                { arabic: "مِصْبَاح", french: "lampe" },
+                { arabic: "مُصْحَف", french: "Coran" },
+                { arabic: "مُعَلِّم", french: "enseignant" },
+                { arabic: "مُكَيِّف", french: "climatiseur" },
+                { arabic: "مَكْتَب", french: "bureau" },
+                { arabic: "مُنْشَة", french: "scie" },
+                { arabic: "مُنَبِّه", french: "réveil" },
+                { arabic: "مُهَرِّج", french: "clown" },
+                { arabic: "مِفْتَاح", french: "clé" },
+                { arabic: "مِسْمَار", french: "clou/vis" },
+                { arabic: "نَافِذَة", french: "fenêtre" },
+                { arabic: "نَحِيف", french: "maigre" },
+                { arabic: "نَخْل", french: "palmiers" },
+                { arabic: "نِقَاب", french: "niqab" },
+                { arabic: "نُجُوم", french: "étoiles" },
+                { arabic: "نُقُود", french: "argent/monnaie" },
+                { arabic: "هَاتِف", french: "téléphone" },
+                { arabic: "هَرَم", french: "pyramide" },
+                { arabic: "هِلَال", french: "croissant" },
+                { arabic: "هُدْهُد", french: "huppe (oiseau)" },
+                { arabic: "وَرْدَة", french: "rose" },
+                { arabic: "وِسَادَة", french: "oreiller" },
+                { arabic: "يَد", french: "main" },
+                { arabic: "يُوسُفِي", french: "mandarine" }
+            ],
+            "Verbes": [
+                { arabic: "يَأْكُل", french: "il mange" },
+                { arabic: "يَتَزَلَّق", french: "il glisse/fait du ski" },
+                { arabic: "يَتَسَلَّق", french: "il grimpe/escalade" },
+                { arabic: "يَتَّصِل", french: "il appelle/contacte" },
+                { arabic: "يَتَوَضَّأ", french: "il fait ses ablutions" },
+                { arabic: "يَجُرُّ", french: "il tire/traîne" },
+                { arabic: "يَجْرِي", french: "il court" },
+                { arabic: "يَجْلِس", french: "il s'assoit" },
+                { arabic: "يَحْجُّ", french: "il fait le pèlerinage" },
+                { arabic: "يَحْفَظ", french: "il mémorise/garde" },
+                { arabic: "يَخْرُج", french: "il sort" },
+                { arabic: "يَدْخُل", french: "il entre" },
+                { arabic: "يَدُقُّ", french: "il frappe/cogne" },
+                { arabic: "يَذْهَب", french: "il va/part" },
+                { arabic: "يَشُمُّ", french: "il sent/renifle" },
+                { arabic: "يَصْعَد", french: "il monte" },
+                { arabic: "يَعُضُّ", french: "il mord" },
+                { arabic: "يُغَلِّق", french: "il ferme" },
+                { arabic: "يَفْتَح", french: "il ouvre" },
+                { arabic: "يَقْرَأ", french: "il lit" },
+                { arabic: "يَكْتُب", french: "il écrit" },
+                { arabic: "يَلْعَب", french: "il joue" },
+                { arabic: "يَمْشِي", french: "il marche" },
+                { arabic: "يَنَام", french: "il dort" },
+                { arabic: "يَنْفُضُ", french: "il secoue/époussette" },
+                { arabic: "يَنْزِل", french: "il descend" }
+            ],
+            "Nombres": [
+                { arabic: "صِفْر", french: "zéro (0)" },
+                { arabic: "وَاحِد", french: "un (1)" },
+                { arabic: "اثْنَان", french: "deux (2)" },
+                { arabic: "ثَلَاثَة", french: "trois (3)" },
+                { arabic: "أَرْبَعَة", french: "quatre (4)" },
+                { arabic: "خَمْسَة", french: "cinq (5)" },
+                { arabic: "سِتَّة", french: "six (6)" },
+                { arabic: "سَبْعَة", french: "sept (7)" },
+                { arabic: "ثَمَانِيَة", french: "huit (8)" },
+                { arabic: "تِسْعَة", french: "neuf (9)" },
+                { arabic: "عَشَرَة", french: "dix (10)" }
+            ],
+            "Jours de la Semaine": [
+                { arabic: "السَّبْت", french: "samedi" },
+                { arabic: "الْأَحَد", french: "dimanche" },
+                { arabic: "الْإِثْنَيْن", french: "lundi" },
+                { arabic: "الثُّلَاثَاء", french: "mardi" },
+                { arabic: "الْأَرْبِعَاء", french: "mercredi" },
+                { arabic: "الْخَمِيس", french: "jeudi" },
+                { arabic: "الْجُمْعَة", french: "vendredi" }
+            ]
+        };
+
+        // Variables globales
+        let currentTab = 0;
+        let currentCategory = "Couleurs";
+        let currentCardIndex = 0;
+        let currentCards = [];
+        let isFlipped = false;
+
+        // Variables du quiz
+        let quizCategory = "Tout";
+        let quizQuestions = [];
+        let currentQuestionIndex = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let answered = false;
+
+        // Système de mémoire
+        const STORAGE_KEY = 'arabic_vocab_memory';
+        
+        function getVocabMemory() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : {};
+        }
+
+        function saveVocabMemory(memory) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(memory));
+        }
+
+        function updateWordStats(arabicWord, isCorrect) {
+            const memory = getVocabMemory();
+            
+            if (!memory[arabicWord]) {
+                memory[arabicWord] = {
+                    correct: 0,
+                    incorrect: 0,
+                    consecutiveErrors: 0,
+                    lastAttempt: Date.now()
+                };
+            }
+
+            if (isCorrect) {
+                memory[arabicWord].correct++;
+                memory[arabicWord].consecutiveErrors = 0;
+            } else {
+                memory[arabicWord].incorrect++;
+                memory[arabicWord].consecutiveErrors++;
+            }
+            
+            memory[arabicWord].lastAttempt = Date.now();
+            saveVocabMemory(memory);
+        }
+
+        function getWordDifficulty(arabicWord) {
+            const memory = getVocabMemory();
+            const stats = memory[arabicWord];
+            
+            if (!stats) return 'default'; // Jamais testé
+            
+            // Mots très difficiles : 4+ erreurs consécutives sans bonne réponse
+            if (stats.consecutiveErrors >= 4) return 'very-hard';
+            
+            // Mots difficiles : 2-3 erreurs consécutives
+            if (stats.consecutiveErrors >= 2) return 'hard';
+            
+            const total = stats.correct + stats.incorrect;
+            if (total === 0) return 'default';
+            
+            const successRate = stats.correct / total;
+            
+            // Mots maîtrisés : plus de 70% de réussite et au moins 3 tentatives
+            if (successRate >= 0.7 && total >= 3) return 'mastered';
+            
+            // Mots en apprentissage : 1 erreur récente
+            if (stats.incorrect > 0 && successRate < 0.7) return 'learning';
+            
+            return 'default';
+        }
+
+        function getDifficultyColor(difficulty) {
+            const colors = {
+                'very-hard': '#dc3545',    // Rouge vif
+                'hard': '#fd7e14',          // Orange
+                'learning': '#ffc107',      // Jaune/Ambre
+                'mastered': '#28a745',      // Vert vif
+                'default': '#97bc62'        // Vert clair (par défaut)
+            };
+            return colors[difficulty] || colors.default;
+        }
+
+        // Initialisation
+        window.onload = function() {
+            displayVocabulary();
+            setupFlashcards();
+            setupQuiz();
+            displayMemoryStats();
+        };
+
+        // Gestion des onglets
+        function switchTab(tabIndex) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach((tab, index) => {
+                if (index === tabIndex) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            contents.forEach((content, index) => {
+                if (index === tabIndex) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+
+            currentTab = tabIndex;
+
+            if (tabIndex === 1) {
+                loadCards(currentCategory);
+            }
+        }
+
+        // Affichage du vocabulaire
+        function displayVocabulary() {
+            const container = document.getElementById('vocabulary-container');
+            container.innerHTML = '';
+            
+            // Ajouter la légende des couleurs
+            addColorLegend();
+
+            for (const [category, words] of Object.entries(vocabulary)) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'category-title';
+                titleDiv.textContent = category;
+                categoryDiv.appendChild(titleDiv);
+
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'vocab-grid';
+
+                words.forEach(word => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'vocab-item';
+                    
+                    // Appliquer la couleur selon la difficulté
+                    const difficulty = getWordDifficulty(word.arabic);
+                    const color = getDifficultyColor(difficulty);
+                    itemDiv.style.borderLeftColor = color;
+
+                    const arabicDiv = document.createElement('div');
+                    arabicDiv.className = 'arabic-text';
+                    arabicDiv.textContent = word.arabic;
+
+                    const frenchDiv = document.createElement('div');
+                    frenchDiv.className = 'french-text';
+                    frenchDiv.textContent = word.french;
+
+                    itemDiv.appendChild(arabicDiv);
+                    itemDiv.appendChild(frenchDiv);
+                    gridDiv.appendChild(itemDiv);
+                });
+
+                categoryDiv.appendChild(gridDiv);
+                container.appendChild(categoryDiv);
+            }
+            
+            // Mettre à jour les statistiques
+            displayMemoryStats();
+        }
+
+        // Configuration des flashcards
+        function setupFlashcards() {
+            const container = document.getElementById('flashcard-categories');
+            container.innerHTML = '';
+
+            const allBtn = document.createElement('button');
+            allBtn.className = 'category-btn';
+            allBtn.textContent = '📚 Tout';
+            allBtn.onclick = () => selectCategory('Tout');
+            container.appendChild(allBtn);
+
+            for (const category of Object.keys(vocabulary)) {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.textContent = category;
+                btn.onclick = () => selectCategory(category);
+                container.appendChild(btn);
+            }
+        }
+
+        function selectCategory(category) {
+            currentCategory = category;
+            const buttons = document.querySelectorAll('#flashcard-categories .category-btn');
+            buttons.forEach(btn => {
+                if (btn.textContent === category || (category === 'Tout' && btn.textContent === '📚 Tout')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            loadCards(category);
+        }
+
+        function loadCards(category) {
+            currentCards = [];
+            
+            if (category === 'Tout') {
+                for (const words of Object.values(vocabulary)) {
+                    currentCards = currentCards.concat(words);
+                }
+            } else {
+                currentCards = vocabulary[category] || [];
+            }
+
+            currentCardIndex = 0;
+            showCard();
+        }
+
+        function showCard() {
+            if (currentCards.length === 0) return;
+
+            const card = currentCards[currentCardIndex];
+            document.getElementById('card-front').textContent = card.french;
+            document.getElementById('card-back').textContent = card.arabic;
+            document.getElementById('card-counter').textContent = `${currentCardIndex + 1} / ${currentCards.length}`;
+
+            // Reset flip
+            document.getElementById('flashcard').classList.remove('flipped');
+            isFlipped = false;
+
+            // Update button states
+            document.getElementById('prev-btn').disabled = currentCardIndex === 0;
+            document.getElementById('next-btn').disabled = currentCardIndex === currentCards.length - 1;
+        }
+
+        function flipCard() {
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+        }
+
+        function previousCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                showCard();
+            }
+        }
+
+        function nextCard() {
+            if (currentCardIndex < currentCards.length - 1) {
+                currentCardIndex++;
+                showCard();
+            }
+        }
+
+        // Configuration du quiz
+        function setupQuiz() {
+            const container = document.getElementById('quiz-categories');
+            container.innerHTML = '';
+
+            const allBtn = document.createElement('button');
+            allBtn.className = 'category-btn active';
+            allBtn.textContent = '📚 Tout le vocabulaire';
+            allBtn.onclick = () => selectQuizCategory('Tout');
+            container.appendChild(allBtn);
+
+            for (const category of Object.keys(vocabulary)) {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.textContent = category;
+                btn.onclick = () => selectQuizCategory(category);
+                container.appendChild(btn);
+            }
+        }
+
+        function selectQuizCategory(category) {
+            quizCategory = category;
+            const buttons = document.querySelectorAll('#quiz-categories .category-btn');
+            buttons.forEach(btn => {
+                if (btn.textContent === category || (category === 'Tout' && btn.textContent === '📚 Tout le vocabulaire')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function startQuiz() {
+            // Préparer les questions
+            quizQuestions = [];
+            
+            if (quizCategory === 'Tout') {
+                for (const words of Object.values(vocabulary)) {
+                    quizQuestions = quizQuestions.concat(words);
+                }
+            } else {
+                quizQuestions = vocabulary[quizCategory] || [];
+            }
+
+            // Mélanger les questions
+            quizQuestions = shuffleArray([...quizQuestions]);
+
+            currentQuestionIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+
+            document.getElementById('quiz-setup').style.display = 'none';
+            document.getElementById('quiz-game').style.display = 'block';
+            document.getElementById('quiz-results').style.display = 'none';
+
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= quizQuestions.length) {
+                showResults();
+                return;
+            }
+
+            answered = false;
+            const question = quizQuestions[currentQuestionIndex];
+
+            // Mise à jour de la progression
+            const progress = ((currentQuestionIndex) / quizQuestions.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            document.getElementById('progress-fill').textContent = Math.round(progress) + '%';
+
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+            document.getElementById('total-questions').textContent = quizQuestions.length;
+            document.getElementById('correct-answers').textContent = correctCount;
+            document.getElementById('incorrect-answers').textContent = incorrectCount;
+
+            // Question
+            document.getElementById('question-text').textContent = question.french;
+            document.getElementById('question-hint').textContent = 'Quelle est la traduction en arabe ?';
+
+            // Générer les options de réponse
+            const options = generateOptions(question);
+            const optionsContainer = document.getElementById('answer-options');
+            optionsContainer.innerHTML = '';
+
+            options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = option.arabic;
+                btn.onclick = () => checkAnswer(option, question, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('next-question-btn').style.display = 'none';
+        }
+
+        function generateOptions(correctAnswer) {
+            const allWords = [];
+            for (const words of Object.values(vocabulary)) {
+                allWords.push(...words);
+            }
+
+            const options = [correctAnswer];
+            const usedArabic = new Set([correctAnswer.arabic]);
+
+            while (options.length < 4) {
+                const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+                if (!usedArabic.has(randomWord.arabic)) {
+                    options.push(randomWord);
+                    usedArabic.add(randomWord.arabic);
+                }
+            }
+
+            return shuffleArray(options);
+        }
+
+        function checkAnswer(selected, correct, btn) {
+            if (answered) return;
+            answered = true;
+
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach(b => b.style.pointerEvents = 'none');
+
+            const isCorrect = selected.arabic === correct.arabic;
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                correctCount++;
+            } else {
+                btn.classList.add('incorrect');
+                // Montrer la bonne réponse
+                buttons.forEach(b => {
+                    if (b.textContent === correct.arabic) {
+                        b.classList.add('correct');
+                    }
+                });
+                incorrectCount++;
+            }
+
+            // Enregistrer les statistiques
+            updateWordStats(correct.arabic, isCorrect);
+            
+            // Rafraîchir l'affichage du vocabulaire avec les nouvelles couleurs
+            if (currentTab === 0) {
+                displayVocabulary();
+            }
+
+            document.getElementById('correct-answers').textContent = correctCount;
+            document.getElementById('incorrect-answers').textContent = incorrectCount;
+            document.getElementById('next-question-btn').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            showQuestion();
+        }
+
+        function showResults() {
+            document.getElementById('quiz-game').style.display = 'none';
+            document.getElementById('quiz-results').style.display = 'block';
+
+            const percentage = Math.round((correctCount / quizQuestions.length) * 100);
+            document.getElementById('final-score').textContent = `${correctCount} / ${quizQuestions.length} (${percentage}%)`;
+
+            let message = '';
+            if (percentage === 100) {
+                message = '🎉 Parfait ! Vous maîtrisez ce vocabulaire !';
+            } else if (percentage >= 80) {
+                message = '👏 Excellent travail ! Continuez comme ça !';
+            } else if (percentage >= 60) {
+                message = '👍 Bon travail ! Encore un peu de pratique et ce sera parfait !';
+            } else {
+                message = '💪 Continuez à pratiquer ! Vous progresserez rapidement !';
+            }
+
+            document.getElementById('results-message').textContent = message;
+        }
+
+        function restartQuiz() {
+            document.getElementById('quiz-setup').style.display = 'block';
+            document.getElementById('quiz-game').style.display = 'none';
+            document.getElementById('quiz-results').style.display = 'none';
+        }
+
+        // Fonction utilitaire pour mélanger un tableau
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function displayMemoryStats() {
+            const memory = getVocabMemory();
+            const totalWords = Object.keys(memory).length;
+            
+            let veryHard = 0, hard = 0, learning = 0, mastered = 0;
+            
+            for (const word in memory) {
+                const diff = getWordDifficulty(word);
+                if (diff === 'very-hard') veryHard++;
+                else if (diff === 'hard') hard++;
+                else if (diff === 'learning') learning++;
+                else if (diff === 'mastered') mastered++;
+            }
+
+            const statsDiv = document.getElementById('memory-stats');
+            if (totalWords > 0) {
+                statsDiv.innerHTML = `
+                    <strong>Progression :</strong> 
+                    <span style="color: #28a745;">✓ ${mastered} maîtrisés</span> | 
+                    <span style="color: #ffc107;">⚡ ${learning} en cours</span> | 
+                    <span style="color: #fd7e14;">⚠ ${hard} difficiles</span> | 
+                    <span style="color: #dc3545;">✗ ${veryHard} à revoir</span>
+                `;
+            }
+        }
+
+        function addColorLegend() {
+            const container = document.getElementById('vocabulary-container');
+            
+            const legendDiv = document.createElement('div');
+            legendDiv.style.cssText = `
+                background: #fafaf8;
+                padding: 20px;
+                border-radius: 2px;
+                margin-bottom: 30px;
+                border: 1px solid #e0e0dc;
+                text-align: center;
+            `;
+            
+            legendDiv.innerHTML = `
+                <h3 style="color: #2c5f2d; margin-bottom: 15px; font-size: 1.2em;">📊 Légende des couleurs</h3>
+                <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; font-size: 0.95em;">
+                    <div><span style="display: inline-block; width: 20px; height: 20px; background: #dc3545; vertical-align: middle; margin-right: 5px;"></span> À revoir (4+ erreurs)</div>
+                    <div><span style="display: inline-block; width: 20px; height: 20px; background: #fd7e14; vertical-align: middle; margin-right: 5px;"></span> Difficile (2-3 erreurs)</div>
+                    <div><span style="display: inline-block; width: 20px; height: 20px; background: #ffc107; vertical-align: middle; margin-right: 5px;"></span> En apprentissage</div>
+                    <div><span style="display: inline-block; width: 20px; height: 20px; background: #28a745; vertical-align: middle; margin-right: 5px;"></span> Maîtrisé (70%+ réussite)</div>
+                    <div><span style="display: inline-block; width: 20px; height: 20px; background: #97bc62; vertical-align: middle; margin-right: 5px;"></span> Non testé</div>
+                </div>
+            `;
+            
+            container.insertBefore(legendDiv, container.firstChild);
+        }
+
+        function resetMemory() {
+            if (confirm('⚠️ Êtes-vous sûr de vouloir réinitialiser toutes vos statistiques d\'apprentissage ?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                displayVocabulary();
+                displayMemoryStats();
+                alert('✅ Statistiques réinitialisées avec succès !');
+            }
+        }
+    </script>
+</body>
+</html>
