@@ -126,13 +126,13 @@
             padding: 18px;
             border-radius: 2px;
             border: 1px solid #e0e0dc;
-            border-left: 3px solid #97bc62;
+            border-left: 4px solid #97bc62;
             transition: all 0.2s;
         }
 
         .vocab-item:hover {
-            border-left-color: #2c5f2d;
             box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
         }
 
         .arabic-text {
@@ -949,9 +949,9 @@
             const memory = getVocabMemory();
             const stats = memory[arabicWord];
             
-            if (!stats) return 'default'; // Jamais testé
+            if (!stats) return 'default';
             
-            // Mots très difficiles : 4+ erreurs consécutives sans bonne réponse
+            // Mots très difficiles : 4+ erreurs consécutives
             if (stats.consecutiveErrors >= 4) return 'very-hard';
             
             // Mots difficiles : 2-3 erreurs consécutives
@@ -965,7 +965,7 @@
             // Mots maîtrisés : plus de 70% de réussite et au moins 3 tentatives
             if (successRate >= 0.7 && total >= 3) return 'mastered';
             
-            // Mots en apprentissage : 1 erreur récente
+            // Mots en apprentissage : quelques tentatives avec moins de 70% de réussite
             if (stats.incorrect > 0 && successRate < 0.7) return 'learning';
             
             return 'default';
@@ -973,11 +973,11 @@
 
         function getDifficultyColor(difficulty) {
             const colors = {
-                'very-hard': '#dc3545',    // Rouge vif
-                'hard': '#fd7e14',          // Orange
-                'learning': '#ffc107',      // Jaune/Ambre
-                'mastered': '#28a745',      // Vert vif
-                'default': '#97bc62'        // Vert clair (par défaut)
+                'very-hard': '#dc3545',
+                'hard': '#fd7e14',
+                'learning': '#ffc107',
+                'mastered': '#28a745',
+                'default': '#97bc62'
             };
             return colors[difficulty] || colors.default;
         }
@@ -1046,6 +1046,7 @@
                     const difficulty = getWordDifficulty(word.arabic);
                     const color = getDifficultyColor(difficulty);
                     itemDiv.style.borderLeftColor = color;
+                    itemDiv.style.borderLeftWidth = '4px';
 
                     const arabicDiv = document.createElement('div');
                     arabicDiv.className = 'arabic-text';
@@ -1296,10 +1297,8 @@
             // Enregistrer les statistiques
             updateWordStats(correct.arabic, isCorrect);
             
-            // Rafraîchir l'affichage du vocabulaire avec les nouvelles couleurs
-            if (currentTab === 0) {
-                displayVocabulary();
-            }
+            // CORRECTION: Toujours rafraîchir l'affichage du vocabulaire
+            displayVocabulary();
 
             document.getElementById('correct-answers').textContent = correctCount;
             document.getElementById('incorrect-answers').textContent = incorrectCount;
