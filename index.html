@@ -54,6 +54,7 @@
             display: flex;
             background: #fafaf8;
             border-bottom: 2px solid #d4d4d0;
+            overflow-x: auto;
         }
 
         .tab {
@@ -68,6 +69,8 @@
             background: transparent;
             font-family: 'Segoe UI', sans-serif;
             color: #555;
+            white-space: nowrap;
+            min-width: 150px;
         }
 
         .tab:hover {
@@ -104,6 +107,11 @@
             border-left: 4px solid #2c5f2d;
         }
 
+        .category.custom-category {
+            border-left-color: #e67e22;
+            background: #fef5e7;
+        }
+
         .category-title {
             font-size: 1.8em;
             color: #2c5f2d;
@@ -112,6 +120,23 @@
             border-bottom: 2px solid #97bc62;
             font-family: 'Georgia', serif;
             font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .custom-category .category-title {
+            color: #e67e22;
+            border-bottom-color: #e67e22;
+        }
+
+        .category-badge {
+            font-size: 0.5em;
+            background: #e67e22;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: 500;
         }
 
         .vocab-grid {
@@ -150,6 +175,283 @@
             font-family: 'Segoe UI', sans-serif;
         }
 
+        /* Custom Words Tab */
+        .custom-words-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .add-word-form {
+            background: #fafaf8;
+            padding: 30px;
+            border-radius: 2px;
+            margin-bottom: 40px;
+            border: 2px solid #2c5f2d;
+        }
+
+        .add-word-form h2 {
+            color: #2c5f2d;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c5f2d;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d4d4d0;
+            border-radius: 2px;
+            font-size: 1em;
+            font-family: 'Segoe UI', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2c5f2d;
+            box-shadow: 0 0 5px rgba(44, 95, 45, 0.2);
+        }
+
+        .form-group input[dir="rtl"] {
+            font-family: 'Arial', sans-serif;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 2px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .btn-primary {
+            background: #2c5f2d;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1a3a1b;
+        }
+
+        .btn-secondary {
+            background: #97bc62;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7a9d4f;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-small {
+            padding: 6px 14px;
+            font-size: 0.85em;
+        }
+
+        .custom-words-list {
+            background: #fafaf8;
+            padding: 25px;
+            border-radius: 2px;
+            border: 1px solid #e0e0dc;
+        }
+
+        .custom-words-list h3 {
+            color: #2c5f2d;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .custom-word-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 2px;
+            border-left: 4px solid #e67e22;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .custom-word-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .custom-word-content {
+            flex: 1;
+        }
+
+        .custom-word-arabic {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #1a3a1b;
+            direction: rtl;
+            font-family: 'Arial', sans-serif;
+            margin-bottom: 5px;
+        }
+
+        .custom-word-french {
+            color: #666;
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+
+        .custom-word-category {
+            font-size: 0.85em;
+            color: #e67e22;
+            font-weight: 600;
+        }
+
+        .custom-word-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 1.2em;
+        }
+
+        .category-manager {
+            background: #fafaf8;
+            padding: 20px;
+            border-radius: 2px;
+            margin-bottom: 30px;
+            border: 1px solid #e0e0dc;
+        }
+
+        .category-manager h3 {
+            color: #2c5f2d;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .category-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .category-input-group input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #d4d4d0;
+            border-radius: 2px;
+            font-size: 1em;
+        }
+
+        .custom-categories-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .category-chip {
+            background: #e67e22;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-chip button {
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .category-chip button:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .export-import-section {
+            background: #fafaf8;
+            padding: 20px;
+            border-radius: 2px;
+            margin-top: 30px;
+            border: 1px solid #e0e0dc;
+        }
+
+        .export-import-section h3 {
+            color: #2c5f2d;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .export-import-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 2px;
+            margin-bottom: 20px;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
         /* Flashcards Tab */
         .flashcard-controls {
             display: flex;
@@ -174,8 +476,18 @@
             font-family: 'Segoe UI', sans-serif;
         }
 
+        .category-btn.custom {
+            border-color: #e67e22;
+            color: #e67e22;
+        }
+
         .category-btn:hover {
             background: #2c5f2d;
+            color: white;
+        }
+
+        .category-btn.custom:hover {
+            background: #e67e22;
             color: white;
         }
 
@@ -183,6 +495,10 @@
             background: #2c5f2d;
             color: white;
             font-weight: 600;
+        }
+
+        .category-btn.custom.active {
+            background: #e67e22;
         }
 
         .flashcard-container {
@@ -341,7 +657,7 @@
             max-width: 850px;
             margin: 0 auto;
             position: relative;
-            padding-bottom: 80px; /* Espace pour le bouton fixe */
+            padding-bottom: 80px;
         }
 
         .quiz-progress {
@@ -544,7 +860,6 @@
             border: 1px solid #bee5eb;
         }
 
-        /* AMÉLIORATION: Conteneur sticky pour le bouton suivant */
         .next-btn-container {
             position: sticky;
             bottom: 0;
@@ -652,6 +967,15 @@
             .question-text {
                 font-size: 1.8em;
             }
+
+            .tabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+            }
+
+            .tab {
+                min-width: 120px;
+            }
         }
     </style>
 </head>
@@ -665,8 +989,9 @@
 
         <div class="tabs">
             <button class="tab active" onclick="switchTab(0)">📖 Vocabulaire</button>
-            <button class="tab" onclick="switchTab(1)">🎴 Cartes Mentales</button>
-            <button class="tab" onclick="switchTab(2)">🎯 Quiz</button>
+            <button class="tab" onclick="switchTab(1)">➕ Mes Mots</button>
+            <button class="tab" onclick="switchTab(2)">🎴 Cartes Mentales</button>
+            <button class="tab" onclick="switchTab(3)">🎯 Quiz</button>
         </div>
 
         <div class="content">
@@ -675,7 +1000,71 @@
                 <div id="vocabulary-container"></div>
             </div>
 
-            <!-- Tab 2: Flashcards -->
+            <!-- Tab 2: Mes Mots Personnalisés -->
+            <div class="tab-content" id="custom-words-tab">
+                <div class="custom-words-container">
+                    <div class="info-box">
+                        <strong>💡 Astuce :</strong>
+                        Créez votre propre vocabulaire personnalisé ! Les mots ajoutés apparaîtront dans les flashcards et les quiz.
+                    </div>
+
+                    <!-- Gestionnaire de catégories -->
+                    <div class="category-manager">
+                        <h3>📁 Gérer mes catégories</h3>
+                        <div class="category-input-group">
+                            <input type="text" id="new-category-input" placeholder="Nouvelle catégorie..." maxlength="50">
+                            <button class="btn btn-secondary" onclick="addCustomCategory()">+ Ajouter</button>
+                        </div>
+                        <div class="custom-categories-list" id="custom-categories-list">
+                            <!-- Les catégories personnalisées apparaîtront ici -->
+                        </div>
+                    </div>
+
+                    <!-- Formulaire d'ajout -->
+                    <div class="add-word-form">
+                        <h2>➕ Ajouter un mot</h2>
+                        <div class="form-group">
+                            <label for="word-arabic">Mot en arabe *</label>
+                            <input type="text" id="word-arabic" dir="rtl" placeholder="اكتب الكلمة بالعربية" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="word-french">Traduction en français *</label>
+                            <input type="text" id="word-french" placeholder="Écrivez la traduction" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="word-category">Catégorie *</label>
+                            <select id="word-category" required>
+                                <option value="">-- Choisir une catégorie --</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="addCustomWord()">✓ Ajouter le mot</button>
+                            <button class="btn btn-secondary" onclick="clearForm()">✕ Effacer</button>
+                        </div>
+                    </div>
+
+                    <!-- Liste des mots personnalisés -->
+                    <div class="custom-words-list">
+                        <h3>📝 Mes mots personnalisés (<span id="custom-words-count">0</span>)</h3>
+                        <div id="custom-words-items">
+                            <!-- Les mots apparaîtront ici -->
+                        </div>
+                    </div>
+
+                    <!-- Export/Import -->
+                    <div class="export-import-section">
+                        <h3>💾 Sauvegarder / Importer</h3>
+                        <div class="export-import-actions">
+                            <button class="btn btn-secondary" onclick="exportCustomWords()">⬇️ Exporter mes mots</button>
+                            <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">⬆️ Importer des mots</button>
+                            <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importCustomWords(event)">
+                            <button class="btn btn-danger" onclick="deleteAllCustomWords()">🗑️ Supprimer tout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Flashcards -->
             <div class="tab-content" id="flashcards-tab">
                 <div class="flashcard-controls" id="flashcard-categories"></div>
                 <div style="text-align: center; margin-bottom: 20px;">
@@ -690,7 +1079,7 @@
                 </div>
             </div>
 
-            <!-- Tab 3: Quiz -->
+            <!-- Tab 4: Quiz -->
             <div class="tab-content" id="quiz-tab">
                 <div class="quiz-setup" id="quiz-setup">
                     <h2>🎯 Configurez votre Quiz</h2>
@@ -757,7 +1146,6 @@
                         </div>
                     </div>
 
-                    <!-- AMÉLIORATION: Conteneur sticky pour le bouton -->
                     <div class="next-btn-container">
                         <button class="next-question-btn" id="next-question-btn" onclick="nextQuestion()" style="display: none;">
                             Question Suivante →
@@ -776,8 +1164,8 @@
     </div>
 
     <script>
-        // Données du vocabulaire
-        const vocabulary = {
+        // Données du vocabulaire de base
+        const baseVocabulary = {
             "Couleurs": [
                 { arabic: "أَحْمَر", french: "rouge (m.)" },
                 { arabic: "حَمْرَاء", french: "rouge (f.)" },
@@ -1042,7 +1430,7 @@
 
         // Variables du quiz
         let quizCategory = "Tout";
-        let quizMode = "qcm"; // "qcm" ou "texte"
+        let quizMode = "qcm";
         let quizQuestions = [];
         let currentQuestionIndex = 0;
         let correctCount = 0;
@@ -1050,9 +1438,325 @@
         let answered = false;
         let remainingAttempts = 3;
 
-        // Système de mémoire
+        // Système de mémoire et personnalisation
         const STORAGE_KEY = 'arabic_vocab_memory';
+        const CUSTOM_WORDS_KEY = 'arabic_custom_words';
+        const CUSTOM_CATEGORIES_KEY = 'arabic_custom_categories';
         
+        // Fonctions de gestion du vocabulaire personnalisé
+        function getCustomWords() {
+            const stored = localStorage.getItem(CUSTOM_WORDS_KEY);
+            return stored ? JSON.parse(stored) : {};
+        }
+
+        function saveCustomWords(words) {
+            localStorage.setItem(CUSTOM_WORDS_KEY, JSON.stringify(words));
+        }
+
+        function getCustomCategories() {
+            const stored = localStorage.getItem(CUSTOM_CATEGORIES_KEY);
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function saveCustomCategories(categories) {
+            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(categories));
+        }
+
+        function getAllVocabulary() {
+            const combined = {...baseVocabulary};
+            const customWords = getCustomWords();
+            
+            // Ajouter les mots personnalisés
+            for (const [category, words] of Object.entries(customWords)) {
+                combined[category] = words;
+            }
+            
+            return combined;
+        }
+
+        function addCustomCategory() {
+            const input = document.getElementById('new-category-input');
+            const categoryName = input.value.trim();
+            
+            if (!categoryName) {
+                alert('⚠️ Veuillez entrer un nom de catégorie.');
+                return;
+            }
+
+            const allCategories = [...Object.keys(baseVocabulary), ...getCustomCategories()];
+            if (allCategories.includes(categoryName)) {
+                alert('⚠️ Cette catégorie existe déjà.');
+                return;
+            }
+
+            const categories = getCustomCategories();
+            categories.push(categoryName);
+            saveCustomCategories(categories);
+            
+            input.value = '';
+            updateCategorySelects();
+            displayCustomCategories();
+            alert('✅ Catégorie ajoutée avec succès !');
+        }
+
+        function deleteCustomCategory(categoryName) {
+            if (!confirm(`Êtes-vous sûr de vouloir supprimer la catégorie "${categoryName}" et tous ses mots ?`)) {
+                return;
+            }
+
+            // Supprimer la catégorie
+            let categories = getCustomCategories();
+            categories = categories.filter(c => c !== categoryName);
+            saveCustomCategories(categories);
+
+            // Supprimer tous les mots de cette catégorie
+            const customWords = getCustomWords();
+            delete customWords[categoryName];
+            saveCustomWords(customWords);
+
+            updateCategorySelects();
+            displayCustomCategories();
+            displayCustomWords();
+            displayVocabulary();
+            alert('✅ Catégorie supprimée avec succès !');
+        }
+
+        function displayCustomCategories() {
+            const container = document.getElementById('custom-categories-list');
+            const categories = getCustomCategories();
+            
+            if (categories.length === 0) {
+                container.innerHTML = '<p style="color: #999; font-size: 0.9em;">Aucune catégorie personnalisée pour le moment.</p>';
+                return;
+            }
+
+            container.innerHTML = categories.map(cat => `
+                <div class="category-chip">
+                    ${cat}
+                    <button onclick="deleteCustomCategory('${cat}')">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function updateCategorySelects() {
+            const select = document.getElementById('word-category');
+            const allCategories = [...Object.keys(baseVocabulary), ...getCustomCategories()].sort();
+            
+            select.innerHTML = '<option value="">-- Choisir une catégorie --</option>';
+            allCategories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                select.appendChild(option);
+            });
+        }
+
+        function addCustomWord() {
+            const arabic = document.getElementById('word-arabic').value.trim();
+            const french = document.getElementById('word-french').value.trim();
+            const category = document.getElementById('word-category').value;
+
+            if (!arabic || !french || !category) {
+                alert('⚠️ Veuillez remplir tous les champs.');
+                return;
+            }
+
+            const customWords = getCustomWords();
+            
+            if (!customWords[category]) {
+                customWords[category] = [];
+            }
+
+            // Vérifier si le mot existe déjà
+            const exists = customWords[category].some(w => w.arabic === arabic);
+            if (exists) {
+                alert('⚠️ Ce mot existe déjà dans cette catégorie.');
+                return;
+            }
+
+            customWords[category].push({ arabic, french });
+            saveCustomWords(customWords);
+
+            clearForm();
+            displayCustomWords();
+            displayVocabulary();
+            alert('✅ Mot ajouté avec succès !');
+        }
+
+        function editCustomWord(category, arabic) {
+            const customWords = getCustomWords();
+            const word = customWords[category].find(w => w.arabic === arabic);
+            
+            if (!word) return;
+
+            const newFrench = prompt('Nouvelle traduction:', word.french);
+            if (newFrench && newFrench.trim()) {
+                word.french = newFrench.trim();
+                saveCustomWords(customWords);
+                displayCustomWords();
+                displayVocabulary();
+                alert('✅ Mot modifié avec succès !');
+            }
+        }
+
+        function deleteCustomWord(category, arabic) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce mot ?')) {
+                return;
+            }
+
+            const customWords = getCustomWords();
+            customWords[category] = customWords[category].filter(w => w.arabic !== arabic);
+            
+            if (customWords[category].length === 0) {
+                delete customWords[category];
+            }
+            
+            saveCustomWords(customWords);
+            displayCustomWords();
+            displayVocabulary();
+            alert('✅ Mot supprimé avec succès !');
+        }
+
+        function displayCustomWords() {
+            const container = document.getElementById('custom-words-items');
+            const customWords = getCustomWords();
+            const countElement = document.getElementById('custom-words-count');
+            
+            let totalWords = 0;
+            for (const words of Object.values(customWords)) {
+                totalWords += words.length;
+            }
+            
+            countElement.textContent = totalWords;
+
+            if (totalWords === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-text">Aucun mot personnalisé pour le moment.<br>Commencez par en ajouter un ci-dessus !</div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            for (const [category, words] of Object.entries(customWords)) {
+                words.forEach(word => {
+                    html += `
+                        <div class="custom-word-item">
+                            <div class="custom-word-content">
+                                <div class="custom-word-arabic">${word.arabic}</div>
+                                <div class="custom-word-french">${word.french}</div>
+                                <div class="custom-word-category">📁 ${category}</div>
+                            </div>
+                            <div class="custom-word-actions">
+                                <button class="btn btn-secondary btn-small" onclick="editCustomWord('${category}', '${word.arabic}')">✏️ Modifier</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteCustomWord('${category}', '${word.arabic}')">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function clearForm() {
+            document.getElementById('word-arabic').value = '';
+            document.getElementById('word-french').value = '';
+            document.getElementById('word-category').value = '';
+        }
+
+        function exportCustomWords() {
+            const customWords = getCustomWords();
+            const customCategories = getCustomCategories();
+            
+            const data = {
+                words: customWords,
+                categories: customCategories,
+                exportDate: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vocabulaire_arabe_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importCustomWords(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (!data.words || !data.categories) {
+                        throw new Error('Format de fichier invalide');
+                    }
+
+                    // Fusionner avec les données existantes
+                    const existingWords = getCustomWords();
+                    const existingCategories = getCustomCategories();
+
+                    // Fusionner les catégories
+                    const allCategories = [...new Set([...existingCategories, ...data.categories])];
+                    saveCustomCategories(allCategories);
+
+                    // Fusionner les mots
+                    for (const [category, words] of Object.entries(data.words)) {
+                        if (!existingWords[category]) {
+                            existingWords[category] = [];
+                        }
+                        
+                        words.forEach(newWord => {
+                            const exists = existingWords[category].some(w => w.arabic === newWord.arabic);
+                            if (!exists) {
+                                existingWords[category].push(newWord);
+                            }
+                        });
+                    }
+                    
+                    saveCustomWords(existingWords);
+
+                    updateCategorySelects();
+                    displayCustomCategories();
+                    displayCustomWords();
+                    displayVocabulary();
+                    
+                    alert('✅ Données importées avec succès !');
+                } catch (error) {
+                    alert('❌ Erreur lors de l\'importation : ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function deleteAllCustomWords() {
+            if (!confirm('⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer TOUS vos mots et catégories personnalisés ? Cette action est irréversible !')) {
+                return;
+            }
+
+            if (!confirm('Dernière confirmation : Tous vos mots personnalisés seront définitivement supprimés.')) {
+                return;
+            }
+
+            localStorage.removeItem(CUSTOM_WORDS_KEY);
+            localStorage.removeItem(CUSTOM_CATEGORIES_KEY);
+            
+            updateCategorySelects();
+            displayCustomCategories();
+            displayCustomWords();
+            displayVocabulary();
+            
+            alert('✅ Tous les mots personnalisés ont été supprimés.');
+        }
+
         function getVocabMemory() {
             const stored = localStorage.getItem(STORAGE_KEY);
             return stored ? JSON.parse(stored) : {};
@@ -1092,10 +1796,7 @@
             
             if (!stats) return 'default';
             
-            // Mots très difficiles : 4+ erreurs consécutives
             if (stats.consecutiveErrors >= 4) return 'very-hard';
-            
-            // Mots difficiles : 2-3 erreurs consécutives
             if (stats.consecutiveErrors >= 2) return 'hard';
             
             const total = stats.correct + stats.incorrect;
@@ -1103,10 +1804,7 @@
             
             const successRate = stats.correct / total;
             
-            // Mots maîtrisés : plus de 70% de réussite et au moins 3 tentatives
             if (successRate >= 0.7 && total >= 3) return 'mastered';
-            
-            // Mots en apprentissage : quelques tentatives avec moins de 70% de réussite
             if (stats.incorrect > 0 && successRate < 0.7) return 'learning';
             
             return 'default';
@@ -1125,6 +1823,9 @@
 
         // Initialisation
         window.onload = function() {
+            updateCategorySelects();
+            displayCustomCategories();
+            displayCustomWords();
             displayVocabulary();
             setupFlashcards();
             setupQuiz();
@@ -1154,7 +1855,7 @@
 
             currentTab = tabIndex;
 
-            if (tabIndex === 1) {
+            if (tabIndex === 2) { // Flashcards tab
                 loadCards(currentCategory);
             }
         }
@@ -1164,16 +1865,20 @@
             const container = document.getElementById('vocabulary-container');
             container.innerHTML = '';
             
-            // Ajouter la légende des couleurs
             addColorLegend();
 
+            const vocabulary = getAllVocabulary();
+            const customWords = getCustomWords();
+
             for (const [category, words] of Object.entries(vocabulary)) {
+                const isCustom = customWords.hasOwnProperty(category);
+                
                 const categoryDiv = document.createElement('div');
-                categoryDiv.className = 'category';
+                categoryDiv.className = 'category' + (isCustom ? ' custom-category' : '');
 
                 const titleDiv = document.createElement('div');
                 titleDiv.className = 'category-title';
-                titleDiv.textContent = category;
+                titleDiv.innerHTML = category + (isCustom ? ' <span class="category-badge">Mes mots</span>' : '');
                 categoryDiv.appendChild(titleDiv);
 
                 const gridDiv = document.createElement('div');
@@ -1183,7 +1888,6 @@
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'vocab-item';
                     
-                    // Appliquer la couleur selon la difficulté
                     const difficulty = getWordDifficulty(word.arabic);
                     const color = getDifficultyColor(difficulty);
                     itemDiv.style.borderLeftColor = color;
@@ -1206,7 +1910,6 @@
                 container.appendChild(categoryDiv);
             }
             
-            // Mettre à jour les statistiques
             displayMemoryStats();
         }
 
@@ -1221,9 +1924,12 @@
             allBtn.onclick = () => selectCategory('Tout');
             container.appendChild(allBtn);
 
+            const vocabulary = getAllVocabulary();
+            const customWords = getCustomWords();
+            
             for (const category of Object.keys(vocabulary)) {
                 const btn = document.createElement('button');
-                btn.className = 'category-btn';
+                btn.className = 'category-btn' + (customWords.hasOwnProperty(category) ? ' custom' : '');
                 btn.textContent = category;
                 btn.onclick = () => selectCategory(category);
                 container.appendChild(btn);
@@ -1245,6 +1951,7 @@
 
         function loadCards(category) {
             currentCards = [];
+            const vocabulary = getAllVocabulary();
             
             if (category === 'Tout') {
                 for (const words of Object.values(vocabulary)) {
@@ -1261,7 +1968,6 @@
             const container = document.getElementById('flashcard-container');
             container.innerHTML = '';
 
-            // Mettre à jour le compteur
             const countElement = document.getElementById('card-count');
             if (countElement) {
                 countElement.textContent = `${currentCards.length} carte${currentCards.length > 1 ? 's' : ''}`;
@@ -1317,9 +2023,12 @@
             allBtn.onclick = () => selectQuizCategory('Tout');
             container.appendChild(allBtn);
 
+            const vocabulary = getAllVocabulary();
+            const customWords = getCustomWords();
+            
             for (const category of Object.keys(vocabulary)) {
                 const btn = document.createElement('button');
-                btn.className = 'category-btn';
+                btn.className = 'category-btn' + (customWords.hasOwnProperty(category) ? ' custom' : '');
                 btn.textContent = category;
                 btn.onclick = () => selectQuizCategory(category);
                 container.appendChild(btn);
@@ -1348,8 +2057,8 @@
         }
 
         function startQuiz() {
-            // Préparer les questions
             quizQuestions = [];
+            const vocabulary = getAllVocabulary();
             
             if (quizCategory === 'Tout') {
                 for (const words of Object.values(vocabulary)) {
@@ -1359,7 +2068,11 @@
                 quizQuestions = vocabulary[quizCategory] || [];
             }
 
-            // Mélanger les questions
+            if (quizQuestions.length === 0) {
+                alert('Aucun mot disponible pour cette catégorie !');
+                return;
+            }
+
             quizQuestions = shuffleArray([...quizQuestions]);
 
             currentQuestionIndex = 0;
@@ -1383,7 +2096,6 @@
             remainingAttempts = 3;
             const question = quizQuestions[currentQuestionIndex];
 
-            // Mise à jour de la progression
             const progress = ((currentQuestionIndex) / quizQuestions.length) * 100;
             document.getElementById('progress-fill').style.width = progress + '%';
             document.getElementById('progress-fill').textContent = Math.round(progress) + '%';
@@ -1393,16 +2105,13 @@
             document.getElementById('correct-answers').textContent = correctCount;
             document.getElementById('incorrect-answers').textContent = incorrectCount;
 
-            // Afficher le mode approprié
             if (quizMode === 'qcm') {
                 document.getElementById('qcm-mode').style.display = 'block';
                 document.getElementById('text-mode').style.display = 'none';
                 
-                // Question
                 document.getElementById('question-text').textContent = question.french;
                 document.getElementById('question-hint').textContent = 'Quelle est la traduction en arabe ?';
 
-                // Générer les options de réponse
                 const options = generateOptions(question);
                 const optionsContainer = document.getElementById('answer-options');
                 optionsContainer.innerHTML = '';
@@ -1415,31 +2124,22 @@
                     optionsContainer.appendChild(btn);
                 });
             } else {
-                // Mode texte
                 document.getElementById('qcm-mode').style.display = 'none';
                 document.getElementById('text-mode').style.display = 'block';
                 
-                // Question
                 document.getElementById('question-text').textContent = question.arabic;
                 document.getElementById('question-hint').textContent = 'Écrivez la traduction en français';
 
-                // Reset input
                 const input = document.getElementById('text-answer-input');
                 input.value = '';
                 input.className = 'text-input';
                 input.disabled = false;
                 input.focus();
                 
-                // Reset feedback
                 document.getElementById('feedback-container').innerHTML = '';
-                
-                // Reset attempts display
                 document.getElementById('remaining-attempts').textContent = '3';
-                
-                // Enable submit button
                 document.getElementById('submit-answer-btn').disabled = false;
                 
-                // Permettre la validation avec Enter
                 input.onkeypress = function(e) {
                     if (e.key === 'Enter' && !answered) {
                         checkTextAnswer();
@@ -1458,14 +2158,12 @@
             const question = quizQuestions[currentQuestionIndex];
             const correctAnswer = question.french;
 
-            // Normaliser les réponses pour la comparaison
             const normalizedUser = normalizeText(userAnswer);
             const normalizedCorrect = normalizeText(correctAnswer);
 
             const feedbackContainer = document.getElementById('feedback-container');
             
             if (normalizedUser === normalizedCorrect) {
-                // Réponse correcte
                 answered = true;
                 correctCount++;
                 
@@ -1481,18 +2179,15 @@
                 document.getElementById('submit-answer-btn').disabled = true;
                 document.getElementById('next-question-btn').style.display = 'inline-block';
                 
-                // Enregistrer les statistiques
                 updateWordStats(question.arabic, true);
                 displayVocabulary();
                 
                 document.getElementById('correct-answers').textContent = correctCount;
             } else {
-                // Réponse incorrecte
                 remainingAttempts--;
                 document.getElementById('remaining-attempts').textContent = remainingAttempts;
                 
                 if (remainingAttempts > 0) {
-                    // Il reste des tentatives
                     input.className = 'text-input incorrect';
                     
                     feedbackContainer.innerHTML = `
@@ -1501,10 +2196,8 @@
                         </div>
                     `;
                     
-                    // Sélectionner le texte pour faciliter la correction
                     input.select();
                 } else {
-                    // Plus de tentatives
                     answered = true;
                     incorrectCount++;
                     
@@ -1520,7 +2213,6 @@
                     document.getElementById('submit-answer-btn').disabled = true;
                     document.getElementById('next-question-btn').style.display = 'inline-block';
                     
-                    // Enregistrer les statistiques
                     updateWordStats(question.arabic, false);
                     displayVocabulary();
                     
@@ -1530,16 +2222,16 @@
         }
 
         function normalizeText(text) {
-            // Normaliser le texte : minuscules, sans accents, sans espaces multiples, sans ponctuation
             return text
                 .toLowerCase()
-                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Enlever les accents
-                .replace(/[^\w\s]/g, '') // Enlever la ponctuation
-                .replace(/\s+/g, ' ') // Normaliser les espaces
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^\w\s]/g, '')
+                .replace(/\s+/g, ' ')
                 .trim();
         }
 
         function generateOptions(correctAnswer) {
+            const vocabulary = getAllVocabulary();
             const allWords = [];
             for (const words of Object.values(vocabulary)) {
                 allWords.push(...words);
@@ -1548,7 +2240,7 @@
             const options = [correctAnswer];
             const usedArabic = new Set([correctAnswer.arabic]);
 
-            while (options.length < 4) {
+            while (options.length < 4 && allWords.length >= 4) {
                 const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
                 if (!usedArabic.has(randomWord.arabic)) {
                     options.push(randomWord);
@@ -1573,7 +2265,6 @@
                 correctCount++;
             } else {
                 btn.classList.add('incorrect');
-                // Montrer la bonne réponse
                 buttons.forEach(b => {
                     if (b.textContent === correct.arabic) {
                         b.classList.add('correct');
@@ -1582,10 +2273,7 @@
                 incorrectCount++;
             }
 
-            // Enregistrer les statistiques
             updateWordStats(correct.arabic, isCorrect);
-            
-            // CORRECTION: Toujours rafraîchir l'affichage du vocabulaire
             displayVocabulary();
 
             document.getElementById('correct-answers').textContent = correctCount;
@@ -1625,7 +2313,6 @@
             document.getElementById('quiz-results').style.display = 'none';
         }
 
-        // Fonction utilitaire pour mélanger un tableau
         function shuffleArray(array) {
             const newArray = [...array];
             for (let i = newArray.length - 1; i > 0; i--) {
