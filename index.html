@@ -551,6 +551,87 @@
             transform: translateY(-2px);
         }
 
+        .harakat-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 2px;
+            border: 1px solid #e0e0dc;
+        }
+
+        .harakat-panel h5 {
+            color: #2c5f2d;
+            margin-bottom: 10px;
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .harakat-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 8px;
+        }
+
+        .harakat-btn {
+            padding: 12px;
+            background: white;
+            border: 2px solid #2c5f2d;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.5em;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            color: #2c5f2d;
+            font-weight: 600;
+        }
+
+        .harakat-btn:hover {
+            background: #2c5f2d;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .harakat-btn:active {
+            transform: translateY(0);
+        }
+
+        .harakat-description {
+            font-size: 0.7em;
+            display: block;
+            margin-top: 3px;
+            font-weight: normal;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .text-editor-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .cursor-position {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .editable-text {
+            cursor: text;
+            user-select: text;
+            position: relative;
+        }
+
+        .editable-text::after {
+            content: '✏️';
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 0.6em;
+            opacity: 0.4;
+        }
+
         .info-box {
             background: #d1ecf1;
             border: 1px solid #bee5eb;
@@ -1141,15 +1222,62 @@
                             
                             <div class="recognition-result">
                                 <h4>Texte reconnu :</h4>
-                                <div id="recognized-text" class="recognized-text empty">
+                                <div id="recognized-text" class="recognized-text empty" contenteditable="true">
                                     Dessinez pour voir le résultat...
                                 </div>
-                                <button class="btn btn-primary" id="copy-text-btn" onclick="copyRecognizedText()" style="display: none;">
-                                    📋 Copier le texte
-                                </button>
-                                <button class="btn btn-secondary" id="use-in-form-btn" onclick="useInForm()" style="display: none; margin-left: 10px;">
-                                    ➕ Utiliser dans le formulaire
-                                </button>
+                                <div class="text-editor-controls">
+                                    <button class="btn btn-primary" id="copy-text-btn" onclick="copyRecognizedText()" style="display: none;">
+                                        📋 Copier le texte
+                                    </button>
+                                    <button class="btn btn-secondary" id="use-in-form-btn" onclick="useInForm()" style="display: none;">
+                                        ➕ Utiliser dans le formulaire
+                                    </button>
+                                </div>
+                                
+                                <div id="harakat-panel" class="harakat-panel" style="display: none;">
+                                    <h5>📝 Ajouter des harakats :</h5>
+                                    <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">
+                                        Cliquez dans le texte ci-dessus pour positionner le curseur, puis cliquez sur un harakat pour l'insérer.
+                                    </p>
+                                    <div class="harakat-buttons">
+                                        <button class="harakat-btn" onclick="insertHarakat('\u064E')">
+                                            ـَ<span class="harakat-description">Fatha</span>
+                                        </button>
+                                        <button class="harakat-btn" onclick="insertHarakat('\u064B')">
+                                            ـً<span class="harakat-description">Tanwin Fath</span>
+                                        </button>
+                                        <button class="harakat-btn" onclick="insertHarakat('\u0650')">
+                                            ـِ<span class="harakat-description">Kasra</span>
+                                        </button>
+                                        <button class="harakat-btn" onclick="insertHarakat('\u064D')">
+                                            ـٍ<span class="harakat-description">Tanwin Kasr</span>
+                                        </button>
+                                        <button class="harakat-btn" onclick="insertHarakat('\u064F')">
+                                            ـُ<span class="harakat-description">Damma</span>
+                                        </button>
+                                        <button class="harakat-btn" onclick="insertHarakat('\u064C')">
+                                            ـٌ<span class="harakat-description">Tanwin Damm</span>
+                                        </button>
+                                        <button class="harakat-btn" onclick="insertHarakat('\u0652')">
+                                            ـْ<span class="harakat-description">Sukun</span>
+                                        </button>
+                                        <button class="harakat-btn" onclick="insertHarakat('\u0651')">
+                                            ـّ<span class="harakat-description">Shadda</span>
+                                        </button>
+                                        <button class="harakat-btn" onclick="insertHarakat('\u0651\u064E')">
+                                            ـَّ<span class="harakat-description">Shadda+Fatha</span>
+                                        </button>
+                                        <button class="harakat-btn" onclick="insertHarakat('\u0651\u0650')">
+                                            ـِّ<span class="harakat-description">Shadda+Kasra</span>
+                                        </button>
+                                        <button class="harakat-btn" onclick="insertHarakat('\u0651\u064F')">
+                                            ـُّ<span class="harakat-description">Shadda+Damma</span>
+                                        </button>
+                                        <button class="harakat-btn" onclick="deleteLastChar()">
+                                            ⌫<span class="harakat-description">Effacer</span>
+                                        </button>
+                                    </div>
+                                </div>
                                 
                                 <div id="alternative-results" class="alternative-results" style="display: none;">
                                     <h5>Autres suggestions :</h5>
@@ -2634,12 +2762,94 @@
             const textDiv = document.getElementById('recognized-text');
             textDiv.className = 'recognized-text empty';
             textDiv.textContent = 'Dessinez pour voir le résultat...';
+            textDiv.contentEditable = 'false';
             
             document.getElementById('copy-text-btn').style.display = 'none';
             document.getElementById('use-in-form-btn').style.display = 'none';
             document.getElementById('alternative-results').style.display = 'none';
+            document.getElementById('harakat-panel').style.display = 'none';
             
             recognizedTextContent = '';
+        }
+
+        function insertHarakat(harakat) {
+            const textDiv = document.getElementById('recognized-text');
+            
+            // Si le div n'est pas éditable ou vide, on ne fait rien
+            if (textDiv.classList.contains('empty')) {
+                return;
+            }
+
+            // Obtenir la sélection actuelle
+            const selection = window.getSelection();
+            
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                
+                // Créer un nœud texte avec le harakat
+                const harakatNode = document.createTextNode(harakat);
+                
+                // Insérer le harakat à la position du curseur
+                range.deleteContents();
+                range.insertNode(harakatNode);
+                
+                // Déplacer le curseur après le harakat inséré
+                range.setStartAfter(harakatNode);
+                range.setEndAfter(harakatNode);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                // Mettre à jour le contenu reconnu
+                recognizedTextContent = textDiv.textContent;
+                
+                // Garder le focus sur le div
+                textDiv.focus();
+            }
+        }
+
+        function deleteLastChar() {
+            const textDiv = document.getElementById('recognized-text');
+            
+            if (textDiv.classList.contains('empty')) {
+                return;
+            }
+
+            const text = textDiv.textContent;
+            if (text.length > 0) {
+                textDiv.textContent = text.slice(0, -1);
+                recognizedTextContent = textDiv.textContent;
+                
+                // Placer le curseur à la fin
+                const range = document.createRange();
+                const selection = window.getSelection();
+                range.selectNodeContents(textDiv);
+                range.collapse(false);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                textDiv.focus();
+            }
+        }
+
+        function makeTextEditable(textDiv) {
+            textDiv.contentEditable = 'true';
+            textDiv.classList.add('editable-text');
+            
+            // Event listener pour mettre à jour recognizedTextContent quand l'utilisateur édite
+            textDiv.addEventListener('input', function() {
+                recognizedTextContent = this.textContent;
+            });
+            
+            // Focus automatique pour montrer que c'est éditable
+            textDiv.focus();
+            
+            // Placer le curseur à la fin
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.selectNodeContents(textDiv);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
         }
 
         async function recognizeHandwriting() {
@@ -2694,8 +2904,12 @@
                     textDiv.className = 'recognized-text';
                     textDiv.textContent = recognizedTextContent;
                     
+                    // Rendre le texte éditable
+                    makeTextEditable(textDiv);
+                    
                     document.getElementById('copy-text-btn').style.display = 'inline-block';
                     document.getElementById('use-in-form-btn').style.display = 'inline-block';
+                    document.getElementById('harakat-panel').style.display = 'block';
                     
                     // Afficher les alternatives
                     if (results.length > 1) {
@@ -2710,15 +2924,19 @@
                 } else {
                     textDiv.className = 'recognized-text empty';
                     textDiv.textContent = '❌ Aucun texte reconnu. Essayez d\'écrire plus clairement.';
+                    textDiv.contentEditable = 'false';
                     document.getElementById('copy-text-btn').style.display = 'none';
                     document.getElementById('use-in-form-btn').style.display = 'none';
+                    document.getElementById('harakat-panel').style.display = 'none';
                 }
             } catch (error) {
                 console.error('Erreur de reconnaissance:', error);
                 textDiv.className = 'recognized-text empty';
                 textDiv.textContent = '❌ Erreur lors de la reconnaissance. Veuillez réessayer.';
+                textDiv.contentEditable = 'false';
                 document.getElementById('copy-text-btn').style.display = 'none';
                 document.getElementById('use-in-form-btn').style.display = 'none';
+                document.getElementById('harakat-panel').style.display = 'none';
             }
         }
 
@@ -2727,6 +2945,12 @@
             const textDiv = document.getElementById('recognized-text');
             textDiv.className = 'recognized-text';
             textDiv.textContent = text;
+            
+            // Rendre le texte éditable
+            makeTextEditable(textDiv);
+            
+            // Afficher le panneau de harakats
+            document.getElementById('harakat-panel').style.display = 'block';
         }
 
         function copyRecognizedText() {
