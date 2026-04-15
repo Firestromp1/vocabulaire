@@ -1173,13 +1173,37 @@
             }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="container">
+    
+        <!-- Auth Overlay -->
+    <div id="auth-overlay" style="display:flex;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1000;justify-content:center;align-items:center;">
+        <div style="background:white;padding:40px;border-radius:4px;max-width:380px;width:90%;border-top:5px solid #2c5f2d;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+            <h2 style="color:#2c5f2d;margin-bottom:8px;font-family:Georgia,serif;font-size:1.8em;">📚 Vocabulaire Arabe</h2>
+            <p style="color:#666;margin-bottom:25px;font-family:'Segoe UI',sans-serif;">Entrez votre identifiant pour accéder à vos mots</p>
+            <div id="auth-error" style="display:none;background:#fee;color:#c0392b;padding:10px;border-radius:2px;margin-bottom:15px;font-family:'Segoe UI',sans-serif;font-size:0.9em;"></div>
+            <input id="username-input" type="text" placeholder="Votre identifiant (ex: adam123)" autocomplete="off"
+                style="width:100%;padding:14px;border:2px solid #d4d4d0;border-radius:2px;font-size:1em;font-family:'Segoe UI',sans-serif;box-sizing:border-box;margin-bottom:15px;"
+                onkeydown="if(event.key==='Enter')loginUser()"
+            />
+            <button onclick="loginUser()" id="login-btn"
+                style="width:100%;padding:14px;background:#2c5f2d;color:white;border:none;border-radius:2px;font-size:1.05em;font-weight:600;cursor:pointer;font-family:'Segoe UI',sans-serif;">
+                Connexion / Créer un compte
+            </button>
+            <p style="margin-top:12px;color:#999;font-size:0.8em;text-align:center;font-family:'Segoe UI',sans-serif;">Aucun mot de passe requis — vos mots vous suivent partout</p>
+        </div>
+    </div>
+
+    
         <div class="header">
             <h1>📚 Apprentissage du Vocabulaire Arabe</h1>
             <p>Apprenez l'arabe avec des fiches, des cartes mentales et des quiz interactifs</p>
             <div id="memory-stats" style="margin-top: 20px; font-size: 0.95em; opacity: 0.9;"></div>
+            <div style="margin-top:12px;font-family:'Segoe UI',sans-serif;display:flex;justify-content:center;align-items:center;gap:15px;">
+                <span id="user-greeting" style="font-size:0.95em;opacity:0.9;"></span>
+                <button onclick="logout()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.5);color:white;padding:5px 15px;border-radius:20px;cursor:pointer;font-size:0.85em;font-family:'Segoe UI',sans-serif;">Déconnexion</button>
+            </div>
         </div>
 
         <div class="tabs">
@@ -1442,1566 +1466,906 @@
         </div>
     </div>
 
+
     <script>
-        // Données du vocabulaire de base
-        const baseVocabulary = {
-            "Couleurs": [
-                { arabic: "أَحْمَر", french: "rouge (m.)" },
-                { arabic: "حَمْرَاء", french: "rouge (f.)" },
-                { arabic: "أَخْضَر", french: "vert (m.)" },
-                { arabic: "خَضْرَاء", french: "vert (f.)" },
-                { arabic: "أَزْرَق", french: "bleu (m.)" },
-                { arabic: "زَرْقَاء", french: "bleu (f.)" },
-                { arabic: "أَصْفَر", french: "jaune (m.)" },
-                { arabic: "صَفْرَاء", french: "jaune (f.)" },
-                { arabic: "أَسْوَد", french: "noir (m.)" },
-                { arabic: "سَوْدَاء", french: "noir (f.)" },
-                { arabic: "أَبْيَض", french: "blanc (m.)" },
-                { arabic: "بَيْضَاء", french: "blanc (f.)" }
-            ],
-            "Formes": [
-                { arabic: "مُرَبَّع", french: "carré" },
-                { arabic: "مُسْتَطِيل", french: "rectangle" },
-                { arabic: "خَطّ مُسْتَقِيم", french: "ligne droite" },
-                { arabic: "مُثَلَّث", french: "triangle" },
-                { arabic: "دَائِرَة", french: "cercle" }
-            ],
-            "Signes Mathématiques": [
-                { arabic: "زَائِد", french: "plus (+)" },
-                { arabic: "نَاقِص", french: "moins (-)" },
-                { arabic: "فِي", french: "multiplié par (×)" },
-                { arabic: "عَلَى", french: "divisé par (÷)" },
-                { arabic: "يُسَاوِي", french: "égal (=)" },
-                { arabic: "لَا يُسَاوِي", french: "n'est pas égal (≠)" },
-                { arabic: "فِي الْمِئَة", french: "pour cent (%)" }
-            ],
-            "Herbivores": [
-                { arabic: "أَسَد", french: "lion" },
-                { arabic: "بَقَرَة", french: "vache" },
-                { arabic: "بَغْل", french: "mulet" },
-                { arabic: "ثَوْر", french: "taureau" },
-                { arabic: "جَامُوس", french: "buffle" },
-                { arabic: "جَمَل", french: "chameau" },
-                { arabic: "حِصَان", french: "cheval" },
-                { arabic: "حِمَار", french: "âne" },
-                { arabic: "حِمَار وَحْشِي", french: "zèbre" },
-                { arabic: "خَرُوف", french: "mouton" },
-                { arabic: "زَرَافَة", french: "girafe" },
-                { arabic: "سُلَحْفَاة", french: "tortue" },
-                { arabic: "غَزَال", french: "gazelle" },
-                { arabic: "فِيل", french: "éléphant" },
-                { arabic: "قِرْد", french: "singe" },
-                { arabic: "قُنْفُذ", french: "hérisson" },
-                { arabic: "وَحِيد الْقَرْن", french: "rhinocéros" }
-            ],
-            "Carnivores": [
-                { arabic: "تِمْسَاح", french: "crocodile" },
-                { arabic: "ثَعْلَب", french: "renard" },
-                { arabic: "دُبّ", french: "ours" },
-                { arabic: "ذِئْب", french: "loup" },
-                { arabic: "ضَبُع", french: "hyène" },
-                { arabic: "فَهْد", french: "guépard/léopard" },
-                { arabic: "قِطَّة", french: "chatte" },
-                { arabic: "كَلْب", french: "chien" },
-                { arabic: "لَبْوَة", french: "lionne" },
-                { arabic: "نَمِر", french: "tigre" }
-            ],
-            "Oiseaux": [
-                { arabic: "بَبَّغَاء", french: "perroquet" },
-                { arabic: "بَطَّة", french: "canard/cane" },
-                { arabic: "بَطْرِيق", french: "pingouin" },
-                { arabic: "بُومَة", french: "hibou" },
-                { arabic: "حَمَامَة", french: "colombe/pigeon" },
-                { arabic: "خُفَّاش", french: "chauve-souris" },
-                { arabic: "دَجَاجَة", french: "poule" },
-                { arabic: "صَقْر", french: "faucon" },
-                { arabic: "طَاوُوس", french: "paon" },
-                { arabic: "عُصْفُور", french: "moineau/oiseau" },
-                { arabic: "غُرَاب", french: "corbeau" },
-                { arabic: "نَسْر", french: "aigle" },
-                { arabic: "نَعَامَة", french: "autruche" }
-            ],
-            "Insectes": [
-                { arabic: "بَعُوضَة", french: "moustique" },
-                { arabic: "جَرَادَة", french: "sauterelle" },
-                { arabic: "خُنْفُسَاء", french: "coccinelle" },
-                { arabic: "دُودَة", french: "ver" },
-                { arabic: "ذُبَابَة", french: "mouche" },
-                { arabic: "صُرْصُور", french: "cafard" },
-                { arabic: "عَنْكَبُوت", french: "araignée" },
-                { arabic: "فَرَاشَة", french: "papillon" },
-                { arabic: "نَحْلَة", french: "abeille" },
-                { arabic: "نَمْلَة", french: "fourmi" }
-            ],
-            "Vocabulaire Général": [
-                { arabic: "أُذُن", french: "oreille" },
-                { arabic: "إِبْرَة", french: "aiguille" },
-                { arabic: "إِبْرِيق", french: "théière" },
-                { arabic: "بَاب", french: "porte" },
-                { arabic: "بَحْر", french: "mer" },
-                { arabic: "بَطَّانِيَة", french: "couverture" },
-                { arabic: "بَطِّيخ", french: "pastèque" },
-                { arabic: "بُرْج", french: "tour" },
-                { arabic: "بَيْت", french: "maison" },
-                { arabic: "تَمْر", french: "dattes" },
-                { arabic: "تُفَّاح", french: "pomme" },
-                { arabic: "تُوت", french: "mûres" },
-                { arabic: "ثَلَّاجَة", french: "réfrigérateur" },
-                { arabic: "ثُرَيَّا", french: "lustre" },
-                { arabic: "ثُعْبَان", french: "serpent" },
-                { arabic: "ثَوْب", french: "vêtement/robe" },
-                { arabic: "ثُوم", french: "ail" },
-                { arabic: "ثِيَاب", french: "vêtements" },
-                { arabic: "جِسْر", french: "pont" },
-                { arabic: "جُبْن", french: "fromage" },
-                { arabic: "حَافِلَة", french: "bus" },
-                { arabic: "حَقِيبَة", french: "valise/sac" },
-                { arabic: "حُوت", french: "baleine" },
-                { arabic: "خُبْز", french: "pain" },
-                { arabic: "خِيَار", french: "concombre" },
-                { arabic: "دَفْتَر", french: "cahier" },
-                { arabic: "دِيك", french: "coq" },
-                { arabic: "ذَهَب", french: "or" },
-                { arabic: "ذِرَاع", french: "bras" },
-                { arabic: "ذُرَة", french: "maïs" },
-                { arabic: "ذَيْل", french: "queue" },
-                { arabic: "رَنْج", french: "cuisinière" },
-                { arabic: "رُمْح", french: "lance" },
-                { arabic: "رُزّ", french: "riz" },
-                { arabic: "رِيشَة", french: "plume" },
-                { arabic: "زَهْرِيَّة", french: "vase de fleurs" },
-                { arabic: "زُجَاجَة", french: "bouteille" },
-                { arabic: "زَيْت", french: "huile" },
-                { arabic: "زِرّ", french: "bouton" },
-                { arabic: "سَبُّورَة", french: "tableau (noir)" },
-                { arabic: "سَخَّان", french: "chauffe-eau" },
-                { arabic: "سَرِير", french: "lit" },
-                { arabic: "سَمَكَة", french: "poisson" },
-                { arabic: "سَمَّاعَة", french: "casque audio" },
-                { arabic: "سَيَّارَة", french: "voiture" },
-                { arabic: "سِوَاك", french: "siwak (bâton à dents)" },
-                { arabic: "سُوق", french: "marché" },
-                { arabic: "شَجَرَة", french: "arbre" },
-                { arabic: "شَعْر", french: "cheveux" },
-                { arabic: "شَمْعَة", french: "bougie" },
-                { arabic: "شِرَاع", french: "voile (bateau)" },
-                { arabic: "ضَبّ", french: "lézard" },
-                { arabic: "ضَابِط", french: "officier" },
-                { arabic: "ضِرْس", french: "molaire/dent" },
-                { arabic: "ضُفْدَع", french: "grenouille" },
-                { arabic: "طَالِب", french: "étudiant" },
-                { arabic: "طَبِيب", french: "médecin" },
-                { arabic: "طَرِيق", french: "route/chemin" },
-                { arabic: "طَوْق", french: "collier/anneau" },
-                { arabic: "طَيَّار", french: "pilote" },
-                { arabic: "طِفْل", french: "enfant" },
-                { arabic: "طُوبَة", french: "brique" },
-                { arabic: "ظَرْف", french: "enveloppe" },
-                { arabic: "ظِلّ", french: "ombre" },
-                { arabic: "ظُفْر", french: "ongle" },
-                { arabic: "عَيْن", french: "œil" },
-                { arabic: "عِنَب", french: "raisins" },
-                { arabic: "غَمْد", french: "fourreau/gaine" },
-                { arabic: "غُصْن", french: "branche" },
-                { arabic: "فَأْر", french: "souris" },
-                { arabic: "فَدَّاحَة", french: "tournevis" },
-                { arabic: "فَرَاوْلَة", french: "fraise" },
-                { arabic: "فَصْل", french: "classe" },
-                { arabic: "فُلْفُل", french: "poivre/poivron" },
-                { arabic: "فُول", french: "fèves" },
-                { arabic: "قَدَم", french: "pied" },
-                { arabic: "قُفْل", french: "cadenas" },
-                { arabic: "قَلَم", french: "stylo" },
-                { arabic: "قَلْب", french: "cœur" },
-                { arabic: "كَعْبَة", french: "Kaaba" },
-                { arabic: "كِتَاب", french: "livre" },
-                { arabic: "كُمَّثْرَى", french: "poire" },
-                { arabic: "كُوب", french: "verre/tasse" },
-                { arabic: "لَحْم", french: "viande" },
-                { arabic: "لَيْمُون", french: "citron" },
-                { arabic: "لِسَان", french: "langue" },
-                { arabic: "لُوبِيَا", french: "haricots" },
-                { arabic: "مَرِيض", french: "malade" },
-                { arabic: "مَسْجِد", french: "mosquée" },
-                { arabic: "مِصْبَاح", french: "lampe" },
-                { arabic: "مُصْحَف", french: "Coran" },
-                { arabic: "مُعَلِّم", french: "enseignant" },
-                { arabic: "مُكَيِّف", french: "climatiseur" },
-                { arabic: "مَكْتَب", french: "bureau" },
-                { arabic: "مُنْشَة", french: "scie" },
-                { arabic: "مُنَبِّه", french: "réveil" },
-                { arabic: "مُهَرِّج", french: "clown" },
-                { arabic: "مِفْتَاح", french: "clé" },
-                { arabic: "مِسْمَار", french: "clou/vis" },
-                { arabic: "نَافِذَة", french: "fenêtre" },
-                { arabic: "نَحِيف", french: "maigre" },
-                { arabic: "نَخْل", french: "palmiers" },
-                { arabic: "نِقَاب", french: "niqab" },
-                { arabic: "نُجُوم", french: "étoiles" },
-                { arabic: "نُقُود", french: "argent/monnaie" },
-                { arabic: "هَاتِف", french: "téléphone" },
-                { arabic: "هَرَم", french: "pyramide" },
-                { arabic: "هِلَال", french: "croissant" },
-                { arabic: "هُدْهُد", french: "huppe (oiseau)" },
-                { arabic: "وَرْدَة", french: "rose" },
-                { arabic: "وِسَادَة", french: "oreiller" },
-                { arabic: "يَد", french: "main" },
-                { arabic: "يُوسُفِي", french: "mandarine" }
-            ],
-            "Verbes": [
-                { arabic: "يَأْكُل", french: "il mange" },
-                { arabic: "يَتَزَلَّق", french: "il glisse/fait du ski" },
-                { arabic: "يَتَسَلَّق", french: "il grimpe/escalade" },
-                { arabic: "يَتَّصِل", french: "il appelle/contacte" },
-                { arabic: "يَتَوَضَّأ", french: "il fait ses ablutions" },
-                { arabic: "يَجُرُّ", french: "il tire/traîne" },
-                { arabic: "يَجْرِي", french: "il court" },
-                { arabic: "يَجْلِس", french: "il s'assoit" },
-                { arabic: "يَحْجُّ", french: "il fait le pèlerinage" },
-                { arabic: "يَحْفَظ", french: "il mémorise/garde" },
-                { arabic: "يَخْرُج", french: "il sort" },
-                { arabic: "يَدْخُل", french: "il entre" },
-                { arabic: "يَدُقُّ", french: "il frappe/cogne" },
-                { arabic: "يَذْهَب", french: "il va/part" },
-                { arabic: "يَشُمُّ", french: "il sent/renifle" },
-                { arabic: "يَصْعَد", french: "il monte" },
-                { arabic: "يَعُضُّ", french: "il mord" },
-                { arabic: "يُغَلِّق", french: "il ferme" },
-                { arabic: "يَفْتَح", french: "il ouvre" },
-                { arabic: "يَقْرَأ", french: "il lit" },
-                { arabic: "يَكْتُب", french: "il écrit" },
-                { arabic: "يَلْعَب", french: "il joue" },
-                { arabic: "يَمْشِي", french: "il marche" },
-                { arabic: "يَنَام", french: "il dort" },
-                { arabic: "يَنْفُضُ", french: "il secoue/époussette" },
-                { arabic: "يَنْزِل", french: "il descend" }
-            ],
-            "Nombres": [
-                { arabic: "صِفْر", french: "zéro (0)" },
-                { arabic: "وَاحِد", french: "un (1)" },
-                { arabic: "اثْنَان", french: "deux (2)" },
-                { arabic: "ثَلَاثَة", french: "trois (3)" },
-                { arabic: "أَرْبَعَة", french: "quatre (4)" },
-                { arabic: "خَمْسَة", french: "cinq (5)" },
-                { arabic: "سِتَّة", french: "six (6)" },
-                { arabic: "سَبْعَة", french: "sept (7)" },
-                { arabic: "ثَمَانِيَة", french: "huit (8)" },
-                { arabic: "تِسْعَة", french: "neuf (9)" },
-                { arabic: "عَشَرَة", french: "dix (10)" }
-            ],
-            "Jours de la Semaine": [
-                { arabic: "السَّبْت", french: "samedi" },
-                { arabic: "الْأَحَد", french: "dimanche" },
-                { arabic: "الْإِثْنَيْن", french: "lundi" },
-                { arabic: "الثُّلَاثَاء", french: "mardi" },
-                { arabic: "الْأَرْبِعَاء", french: "mercredi" },
-                { arabic: "الْخَمِيس", french: "jeudi" },
-                { arabic: "الْجُمْعَة", french: "vendredi" }
-            ]
+
+    // =============================================
+    //  CONFIGURATION SUPABASE — à remplir
+    // =============================================
+    const SUPABASE_URL  = 'VOTRE_SUPABASE_URL';
+    const SUPABASE_ANON = 'VOTRE_SUPABASE_ANON_KEY';
+
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    // =============================================
+    //  ÉTAT GLOBAL
+    // =============================================
+    let currentUser   = null;   // { id, username }
+    let baseVocabulary = {};    // chargé depuis Supabase
+    let customWordsCache = {};  // { category: [{arabic, french, id}] }
+    let wordStatsCache   = {};  // { arabic: {correct_count, incorrect_count} }
+
+    let currentTab      = 0;
+    let currentCards    = [];
+    let currentCategory = 'Tout';
+    let quizCategory    = 'Tout';
+    let quizMode        = 'qcm';
+    let quizQuestions   = [];
+    let currentQuestionIndex = 0;
+    let correctCount    = 0;
+    let incorrectCount  = 0;
+    let answered        = false;
+    let remainingAttempts = 3;
+
+    // =============================================
+    //  AUTH — login sans mot de passe
+    // =============================================
+    async function loginUser() {
+        const input = document.getElementById('username-input');
+        const username = input.value.trim().toLowerCase().replace(/\s+/g, '_');
+        const errDiv = document.getElementById('auth-error');
+        const btn = document.getElementById('login-btn');
+
+        if (!username || username.length < 2) {
+            errDiv.textContent = 'Identifiant trop court (minimum 2 caractères).';
+            errDiv.style.display = 'block';
+            return;
+        }
+        if (!/^[a-z0-9_]+$/.test(username)) {
+            errDiv.textContent = 'Identifiant invalide : lettres, chiffres et _ uniquement.';
+            errDiv.style.display = 'block';
+            return;
+        }
+
+        btn.textContent = 'Connexion…';
+        btn.disabled = true;
+        errDiv.style.display = 'none';
+
+        // Cherche l'utilisateur, le crée si absent
+        let { data: existing } = await db.from('users').select('id,username').eq('username', username).maybeSingle();
+
+        if (!existing) {
+            const { data: created, error } = await db.from('users').insert({ username }).select('id,username').single();
+            if (error) {
+                errDiv.textContent = 'Erreur lors de la création du compte : ' + error.message;
+                errDiv.style.display = 'block';
+                btn.textContent = 'Connexion / Créer un compte';
+                btn.disabled = false;
+                return;
+            }
+            existing = created;
+        }
+
+        currentUser = existing;
+        localStorage.setItem('vocab_user', JSON.stringify(currentUser));
+
+        document.getElementById('auth-overlay').style.display = 'none';
+        document.getElementById('user-greeting').textContent = '👤 ' + currentUser.username;
+
+        await initApp();
+    }
+
+    function logout() {
+        localStorage.removeItem('vocab_user');
+        currentUser = null;
+        baseVocabulary = {};
+        customWordsCache = {};
+        wordStatsCache = {};
+        document.getElementById('auth-overlay').style.display = 'flex';
+        document.getElementById('username-input').value = '';
+        document.getElementById('user-greeting').textContent = '';
+    }
+
+    // =============================================
+    //  CHARGEMENT DES DONNÉES DEPUIS SUPABASE
+    // =============================================
+    async function loadBaseVocabulary() {
+        const { data, error } = await db.from('base_words').select('arabic,french,category').order('category');
+        if (error) { console.error('base_words error', error); return; }
+        baseVocabulary = {};
+        for (const row of data) {
+            if (!baseVocabulary[row.category]) baseVocabulary[row.category] = [];
+            baseVocabulary[row.category].push({ arabic: row.arabic, french: row.french });
+        }
+    }
+
+    async function loadCustomWords() {
+        if (!currentUser) return;
+        const { data, error } = await db.from('custom_words').select('id,arabic,french,category').eq('user_id', currentUser.id);
+        if (error) { console.error('custom_words error', error); return; }
+        customWordsCache = {};
+        for (const row of data) {
+            if (!customWordsCache[row.category]) customWordsCache[row.category] = [];
+            customWordsCache[row.category].push({ arabic: row.arabic, french: row.french, id: row.id });
+        }
+    }
+
+    async function loadWordStats() {
+        if (!currentUser) return;
+        const { data, error } = await db.from('word_stats').select('arabic,correct_count,incorrect_count').eq('user_id', currentUser.id);
+        if (error) { console.error('word_stats error', error); return; }
+        wordStatsCache = {};
+        for (const row of data) {
+            wordStatsCache[row.arabic] = { correct_count: row.correct_count, incorrect_count: row.incorrect_count };
+        }
+    }
+
+    // =============================================
+    //  VOCABULAIRE : lecture / écriture
+    // =============================================
+    function getCustomWords()  { return customWordsCache; }
+    function getCustomCategories() { return Object.keys(customWordsCache); }
+
+    function getAllVocabulary() {
+        const combined = { ...baseVocabulary };
+        for (const [cat, words] of Object.entries(customWordsCache)) {
+            combined[cat] = words;
+        }
+        return combined;
+    }
+
+    async function addCustomCategory() {
+        const input = document.getElementById('new-category-input');
+        const categoryName = input.value.trim();
+        if (!categoryName) { alert('Entrez un nom de catégorie.'); return; }
+        if (customWordsCache[categoryName] || baseVocabulary[categoryName]) {
+            alert('Cette catégorie existe déjà.');
+            return;
+        }
+        // Catégorie vide matérialisée par un mot placeholder qu'on n'ajoutera pas
+        // On l'ajoute juste localement pour l'UI, elle sera créée dès le 1er mot
+        customWordsCache[categoryName] = [];
+        input.value = '';
+        displayCustomCategories();
+        updateCategorySelects();
+    }
+
+    async function deleteCustomCategory(categoryName) {
+        if (!confirm(`Supprimer la catégorie "${categoryName}" et tous ses mots ?`)) return;
+        // Supprimer tous les mots de cette catégorie
+        const { error } = await db.from('custom_words')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('category', categoryName);
+        if (error) { alert('Erreur: ' + error.message); return; }
+        delete customWordsCache[categoryName];
+        displayCustomCategories();
+        updateCategorySelects();
+        displayCustomWords();
+        displayVocabulary();
+        setupFlashcards();
+        setupQuiz();
+    }
+
+    async function addCustomWord() {
+        const arabicInput  = document.getElementById('arabic-input');
+        const frenchInput  = document.getElementById('french-input');
+        const categorySelect = document.getElementById('category-select');
+
+        const arabic   = arabicInput.value.trim();
+        const french   = frenchInput.value.trim();
+        const category = categorySelect.value;
+
+        if (!arabic || !french || !category) { alert('Remplissez tous les champs.'); return; }
+
+        // Vérifier doublon
+        const catWords = customWordsCache[category] || [];
+        if (catWords.some(w => w.arabic === arabic)) {
+            alert('Ce mot arabe existe déjà dans cette catégorie.');
+            return;
+        }
+
+        const { data, error } = await db.from('custom_words')
+            .insert({ user_id: currentUser.id, arabic, french, category })
+            .select('id').single();
+
+        if (error) { alert('Erreur: ' + error.message); return; }
+
+        if (!customWordsCache[category]) customWordsCache[category] = [];
+        customWordsCache[category].push({ arabic, french, id: data.id });
+
+        clearForm();
+        displayCustomWords();
+        displayVocabulary();
+        setupFlashcards();
+        setupQuiz();
+    }
+
+    async function editCustomWord(category, arabic) {
+        const catWords = customWordsCache[category] || [];
+        const word = catWords.find(w => w.arabic === arabic);
+        if (!word) return;
+
+        const newFrench = prompt('Nouvelle traduction française :', word.french);
+        if (newFrench === null || !newFrench.trim()) return;
+
+        const { error } = await db.from('custom_words')
+            .update({ french: newFrench.trim() })
+            .eq('id', word.id);
+
+        if (error) { alert('Erreur: ' + error.message); return; }
+        word.french = newFrench.trim();
+        displayCustomWords();
+        displayVocabulary();
+    }
+
+    async function deleteCustomWord(category, arabic) {
+        if (!confirm(`Supprimer "${arabic}" ?`)) return;
+        const catWords = customWordsCache[category] || [];
+        const word = catWords.find(w => w.arabic === arabic);
+        if (!word) return;
+
+        const { error } = await db.from('custom_words').delete().eq('id', word.id);
+        if (error) { alert('Erreur: ' + error.message); return; }
+
+        customWordsCache[category] = catWords.filter(w => w.arabic !== arabic);
+        if (customWordsCache[category].length === 0) delete customWordsCache[category];
+
+        displayCustomWords();
+        displayVocabulary();
+        setupFlashcards();
+        setupQuiz();
+    }
+
+    async function deleteAllCustomWords() {
+        if (!confirm('Supprimer TOUS vos mots personnalisés ?')) return;
+        const { error } = await db.from('custom_words').delete().eq('user_id', currentUser.id);
+        if (error) { alert('Erreur: ' + error.message); return; }
+        customWordsCache = {};
+        displayCustomWords();
+        displayCustomCategories();
+        updateCategorySelects();
+        displayVocabulary();
+        setupFlashcards();
+        setupQuiz();
+    }
+
+    // =============================================
+    //  STATS D'APPRENTISSAGE
+    // =============================================
+    function getVocabMemory() { return wordStatsCache; }
+
+    async function updateWordStats(arabicWord, isCorrect) {
+        if (!currentUser) return;
+
+        const existing = wordStatsCache[arabicWord];
+        let correct   = (existing?.correct_count   || 0) + (isCorrect ? 1 : 0);
+        let incorrect = (existing?.incorrect_count || 0) + (isCorrect ? 0 : 1);
+
+        const { error } = await db.from('word_stats')
+            .upsert(
+                { user_id: currentUser.id, arabic: arabicWord, correct_count: correct, incorrect_count: incorrect, last_seen: new Date().toISOString() },
+                { onConflict: 'user_id,arabic' }
+            );
+
+        if (!error) {
+            wordStatsCache[arabicWord] = { correct_count: correct, incorrect_count: incorrect };
+        }
+    }
+
+    async function resetMemory() {
+        if (!confirm('Réinitialiser toutes vos statistiques d\'apprentissage ?')) return;
+        const { error } = await db.from('word_stats').delete().eq('user_id', currentUser.id);
+        if (error) { alert('Erreur: ' + error.message); return; }
+        wordStatsCache = {};
+        displayVocabulary();
+        displayMemoryStats();
+        alert('Statistiques réinitialisées !');
+    }
+
+    function getWordDifficulty(arabicWord) {
+        const stats = wordStatsCache[arabicWord];
+        if (!stats) return 'untested';
+        const total   = stats.correct_count + stats.incorrect_count;
+        const correct = stats.correct_count;
+        if (total === 0) return 'untested';
+        if (stats.incorrect_count >= 4) return 'very-hard';
+        if (stats.incorrect_count >= 2) return 'hard';
+        const ratio = correct / total;
+        if (ratio >= 0.7 && total >= 3) return 'mastered';
+        return 'learning';
+    }
+
+    function getDifficultyColor(difficulty) {
+        const colors = {
+            'untested':  '#97bc62',
+            'mastered':  '#28a745',
+            'learning':  '#ffc107',
+            'hard':      '#fd7e14',
+            'very-hard': '#dc3545',
+            'default':   '#97bc62'
         };
+        return colors[difficulty] || colors.default;
+    }
 
-        // Variables globales
-        let currentTab = 0;
-        let currentCategory = "Couleurs";
-        let currentCardIndex = 0;
-        let currentCards = [];
-        let isFlipped = false;
+    // =============================================
+    //  EXPORT / IMPORT
+    // =============================================
+    function exportCustomWords() {
+        const data = { version: 2, username: currentUser.username, words: customWordsCache };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        a.download = `vocabulaire-${currentUser.username}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
 
-        // Variables du quiz
-        let quizCategory = "Tout";
-        let quizMode = "qcm";
-        let quizQuestions = [];
-        let currentQuestionIndex = 0;
-        let correctCount = 0;
-        let incorrectCount = 0;
-        let answered = false;
-        let remainingAttempts = 3;
-
-        // Système de mémoire et personnalisation
-        const STORAGE_KEY = 'arabic_vocab_memory';
-        const CUSTOM_WORDS_KEY = 'arabic_custom_words';
-        const CUSTOM_CATEGORIES_KEY = 'arabic_custom_categories';
-        
-        // Fonctions de gestion du vocabulaire personnalisé
-        function getCustomWords() {
-            const stored = localStorage.getItem(CUSTOM_WORDS_KEY);
-            return stored ? JSON.parse(stored) : {};
-        }
-
-        function saveCustomWords(words) {
-            localStorage.setItem(CUSTOM_WORDS_KEY, JSON.stringify(words));
-        }
-
-        function getCustomCategories() {
-            const stored = localStorage.getItem(CUSTOM_CATEGORIES_KEY);
-            return stored ? JSON.parse(stored) : [];
-        }
-
-        function saveCustomCategories(categories) {
-            localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(categories));
-        }
-
-        function getAllVocabulary() {
-            const combined = {...baseVocabulary};
-            const customWords = getCustomWords();
-            
-            // Ajouter les mots personnalisés
-            for (const [category, words] of Object.entries(customWords)) {
-                combined[category] = words;
-            }
-            
-            return combined;
-        }
-
-        function addCustomCategory() {
-            const input = document.getElementById('new-category-input');
-            const categoryName = input.value.trim();
-            
-            if (!categoryName) {
-                alert('⚠️ Veuillez entrer un nom de catégorie.');
-                return;
-            }
-
-            const allCategories = [...Object.keys(baseVocabulary), ...getCustomCategories()];
-            if (allCategories.includes(categoryName)) {
-                alert('⚠️ Cette catégorie existe déjà.');
-                return;
-            }
-
-            const categories = getCustomCategories();
-            categories.push(categoryName);
-            saveCustomCategories(categories);
-            
-            input.value = '';
-            updateCategorySelects();
-            displayCustomCategories();
-            alert('✅ Catégorie ajoutée avec succès !');
-        }
-
-        function deleteCustomCategory(categoryName) {
-            if (!confirm(`Êtes-vous sûr de vouloir supprimer la catégorie "${categoryName}" et tous ses mots ?`)) {
-                return;
-            }
-
-            // Supprimer la catégorie
-            let categories = getCustomCategories();
-            categories = categories.filter(c => c !== categoryName);
-            saveCustomCategories(categories);
-
-            // Supprimer tous les mots de cette catégorie
-            const customWords = getCustomWords();
-            delete customWords[categoryName];
-            saveCustomWords(customWords);
-
-            updateCategorySelects();
-            displayCustomCategories();
-            displayCustomWords();
-            displayVocabulary();
-            alert('✅ Catégorie supprimée avec succès !');
-        }
-
-        function displayCustomCategories() {
-            const container = document.getElementById('custom-categories-list');
-            const categories = getCustomCategories();
-            
-            if (categories.length === 0) {
-                container.innerHTML = '<p style="color: #999; font-size: 0.9em;">Aucune catégorie personnalisée pour le moment.</p>';
-                return;
-            }
-
-            container.innerHTML = categories.map(cat => `
-                <div class="category-chip">
-                    ${cat}
-                    <button onclick="deleteCustomCategory('${cat}')">✕</button>
-                </div>
-            `).join('');
-        }
-
-        function updateCategorySelects() {
-            const select = document.getElementById('word-category');
-            const allCategories = [...Object.keys(baseVocabulary), ...getCustomCategories()].sort();
-            
-            select.innerHTML = '<option value="">-- Choisir une catégorie --</option>';
-            allCategories.forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat;
-                option.textContent = cat;
-                select.appendChild(option);
-            });
-        }
-
-        function addCustomWord() {
-            const arabic = document.getElementById('word-arabic').value.trim();
-            const french = document.getElementById('word-french').value.trim();
-            const category = document.getElementById('word-category').value;
-
-            if (!arabic || !french || !category) {
-                alert('⚠️ Veuillez remplir tous les champs.');
-                return;
-            }
-
-            const customWords = getCustomWords();
-            
-            if (!customWords[category]) {
-                customWords[category] = [];
-            }
-
-            // Vérifier si le mot existe déjà
-            const exists = customWords[category].some(w => w.arabic === arabic);
-            if (exists) {
-                alert('⚠️ Ce mot existe déjà dans cette catégorie.');
-                return;
-            }
-
-            customWords[category].push({ arabic, french });
-            saveCustomWords(customWords);
-
-            clearForm();
-            displayCustomWords();
-            displayVocabulary();
-            alert('✅ Mot ajouté avec succès !');
-        }
-
-        function editCustomWord(category, arabic) {
-            const customWords = getCustomWords();
-            const word = customWords[category].find(w => w.arabic === arabic);
-            
-            if (!word) return;
-
-            const newFrench = prompt('Nouvelle traduction:', word.french);
-            if (newFrench && newFrench.trim()) {
-                word.french = newFrench.trim();
-                saveCustomWords(customWords);
-                displayCustomWords();
-                displayVocabulary();
-                alert('✅ Mot modifié avec succès !');
-            }
-        }
-
-        function deleteCustomWord(category, arabic) {
-            if (!confirm('Êtes-vous sûr de vouloir supprimer ce mot ?')) {
-                return;
-            }
-
-            const customWords = getCustomWords();
-            customWords[category] = customWords[category].filter(w => w.arabic !== arabic);
-            
-            if (customWords[category].length === 0) {
-                delete customWords[category];
-            }
-            
-            saveCustomWords(customWords);
-            displayCustomWords();
-            displayVocabulary();
-            alert('✅ Mot supprimé avec succès !');
-        }
-
-        function displayCustomWords() {
-            const container = document.getElementById('custom-words-items');
-            const customWords = getCustomWords();
-            const countElement = document.getElementById('custom-words-count');
-            
-            let totalWords = 0;
-            for (const words of Object.values(customWords)) {
-                totalWords += words.length;
-            }
-            
-            countElement.textContent = totalWords;
-
-            if (totalWords === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📝</div>
-                        <div class="empty-state-text">Aucun mot personnalisé pour le moment.<br>Commencez par en ajouter un ci-dessus !</div>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = '';
-            for (const [category, words] of Object.entries(customWords)) {
-                words.forEach(word => {
-                    html += `
-                        <div class="custom-word-item">
-                            <div class="custom-word-content">
-                                <div class="custom-word-arabic">${word.arabic}</div>
-                                <div class="custom-word-french">${word.french}</div>
-                                <div class="custom-word-category">📁 ${category}</div>
-                            </div>
-                            <div class="custom-word-actions">
-                                <button class="btn btn-secondary btn-small" onclick="editCustomWord('${category}', '${word.arabic}')">✏️ Modifier</button>
-                                <button class="btn btn-danger btn-small" onclick="deleteCustomWord('${category}', '${word.arabic}')">🗑️</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-            
-            container.innerHTML = html;
-        }
-
-        function clearForm() {
-            document.getElementById('word-arabic').value = '';
-            document.getElementById('word-french').value = '';
-            document.getElementById('word-category').value = '';
-        }
-
-        function exportCustomWords() {
-            const customWords = getCustomWords();
-            const customCategories = getCustomCategories();
-            
-            const data = {
-                words: customWords,
-                categories: customCategories,
-                exportDate: new Date().toISOString()
-            };
-
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `vocabulaire_arabe_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function importCustomWords(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    
-                    if (!data.words || !data.categories) {
-                        throw new Error('Format de fichier invalide');
-                    }
-
-                    // Fusionner avec les données existantes
-                    const existingWords = getCustomWords();
-                    const existingCategories = getCustomCategories();
-
-                    // Fusionner les catégories
-                    const allCategories = [...new Set([...existingCategories, ...data.categories])];
-                    saveCustomCategories(allCategories);
-
-                    // Fusionner les mots
-                    for (const [category, words] of Object.entries(data.words)) {
-                        if (!existingWords[category]) {
-                            existingWords[category] = [];
+    async function importCustomWords(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                const words = data.words || data; // compat v1
+                let added = 0, skipped = 0;
+                for (const [category, wordList] of Object.entries(words)) {
+                    for (const w of wordList) {
+                        const arabic = w.arabic?.trim();
+                        const french = w.french?.trim();
+                        if (!arabic || !french) continue;
+                        const catWords = customWordsCache[category] || [];
+                        if (catWords.some(x => x.arabic === arabic)) { skipped++; continue; }
+                        const { data: row, error } = await db.from('custom_words')
+                            .insert({ user_id: currentUser.id, arabic, french, category })
+                            .select('id').single();
+                        if (!error) {
+                            if (!customWordsCache[category]) customWordsCache[category] = [];
+                            customWordsCache[category].push({ arabic, french, id: row.id });
+                            added++;
                         }
-                        
-                        words.forEach(newWord => {
-                            const exists = existingWords[category].some(w => w.arabic === newWord.arabic);
-                            if (!exists) {
-                                existingWords[category].push(newWord);
-                            }
-                        });
                     }
-                    
-                    saveCustomWords(existingWords);
-
-                    updateCategorySelects();
-                    displayCustomCategories();
-                    displayCustomWords();
-                    displayVocabulary();
-                    
-                    alert('✅ Données importées avec succès !');
-                } catch (error) {
-                    alert('❌ Erreur lors de l\'importation : ' + error.message);
                 }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-        }
-
-        function deleteAllCustomWords() {
-            if (!confirm('⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer TOUS vos mots et catégories personnalisés ? Cette action est irréversible !')) {
-                return;
+                alert(`Import terminé : ${added} mot(s) ajouté(s), ${skipped} doublon(s) ignoré(s).`);
+                displayCustomWords();
+                displayCustomCategories();
+                updateCategorySelects();
+                displayVocabulary();
+                setupFlashcards();
+                setupQuiz();
+            } catch(err) {
+                alert('Fichier invalide : ' + err.message);
             }
-
-            if (!confirm('Dernière confirmation : Tous vos mots personnalisés seront définitivement supprimés.')) {
-                return;
-            }
-
-            localStorage.removeItem(CUSTOM_WORDS_KEY);
-            localStorage.removeItem(CUSTOM_CATEGORIES_KEY);
-            
-            updateCategorySelects();
-            displayCustomCategories();
-            displayCustomWords();
-            displayVocabulary();
-            
-            alert('✅ Tous les mots personnalisés ont été supprimés.');
-        }
-
-        function getVocabMemory() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            return stored ? JSON.parse(stored) : {};
-        }
-
-        function saveVocabMemory(memory) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(memory));
-        }
-
-        function updateWordStats(arabicWord, isCorrect) {
-            const memory = getVocabMemory();
-            
-            if (!memory[arabicWord]) {
-                memory[arabicWord] = {
-                    correct: 0,
-                    incorrect: 0,
-                    consecutiveErrors: 0,
-                    lastAttempt: Date.now()
-                };
-            }
-
-            if (isCorrect) {
-                memory[arabicWord].correct++;
-                memory[arabicWord].consecutiveErrors = 0;
-            } else {
-                memory[arabicWord].incorrect++;
-                memory[arabicWord].consecutiveErrors++;
-            }
-            
-            memory[arabicWord].lastAttempt = Date.now();
-            saveVocabMemory(memory);
-        }
-
-        function getWordDifficulty(arabicWord) {
-            const memory = getVocabMemory();
-            const stats = memory[arabicWord];
-            
-            if (!stats) return 'default';
-            
-            if (stats.consecutiveErrors >= 4) return 'very-hard';
-            if (stats.consecutiveErrors >= 2) return 'hard';
-            
-            const total = stats.correct + stats.incorrect;
-            if (total === 0) return 'default';
-            
-            const successRate = stats.correct / total;
-            
-            if (successRate >= 0.7 && total >= 3) return 'mastered';
-            if (stats.incorrect > 0 && successRate < 0.7) return 'learning';
-            
-            return 'default';
-        }
-
-        function getDifficultyColor(difficulty) {
-            const colors = {
-                'very-hard': '#dc3545',
-                'hard': '#fd7e14',
-                'learning': '#ffc107',
-                'mastered': '#28a745',
-                'default': '#97bc62'
-            };
-            return colors[difficulty] || colors.default;
-        }
-
-        // Initialisation
-        window.onload = function() {
-            updateCategorySelects();
-            displayCustomCategories();
-            displayCustomWords();
-            displayVocabulary();
-            setupFlashcards();
-            setupQuiz();
-            displayMemoryStats();
-            initCanvas();
         };
+        reader.readAsText(file);
+    }
 
-        // Gestion des onglets
-        function switchTab(tabIndex) {
-            const tabs = document.querySelectorAll('.tab');
-            const contents = document.querySelectorAll('.tab-content');
-            
-            tabs.forEach((tab, index) => {
-                if (index === tabIndex) {
-                    tab.classList.add('active');
-                } else {
-                    tab.classList.remove('active');
+    // =============================================
+    //  INITIALISATION
+    // =============================================
+    async function initApp() {
+        showLoading(true);
+        await Promise.all([loadBaseVocabulary(), loadCustomWords(), loadWordStats()]);
+        showLoading(false);
+        updateCategorySelects();
+        displayCustomCategories();
+        displayCustomWords();
+        displayVocabulary();
+        setupFlashcards();
+        setupQuiz();
+        displayMemoryStats();
+        initCanvas();
+    }
+
+    function showLoading(on) {
+        let el = document.getElementById('loading-bar');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'loading-bar';
+            el.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:4px;background:#2c5f2d;z-index:999;transition:opacity 0.5s;';
+            document.body.appendChild(el);
+        }
+        el.style.opacity = on ? '1' : '0';
+    }
+
+    window.onload = async function() {
+        // Tenter la reconnexion auto
+        const saved = localStorage.getItem('vocab_user');
+        if (saved) {
+            try {
+                const user = JSON.parse(saved);
+                // Vérifier que l'utilisateur existe toujours
+                const { data } = await db.from('users').select('id,username').eq('id', user.id).maybeSingle();
+                if (data) {
+                    currentUser = data;
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    document.getElementById('user-greeting').textContent = '👤 ' + currentUser.username;
+                    await initApp();
+                    return;
                 }
-            });
-
-            contents.forEach((content, index) => {
-                if (index === tabIndex) {
-                    content.classList.add('active');
-                } else {
-                    content.classList.remove('active');
-                }
-            });
-
-            currentTab = tabIndex;
-
-            if (tabIndex === 2) { // Flashcards tab
-                loadCards(currentCategory);
-            }
+            } catch(e) {}
+            localStorage.removeItem('vocab_user');
         }
+        // Sinon afficher l'écran de login
+        document.getElementById('auth-overlay').style.display = 'flex';
+    };
 
-        // Affichage du vocabulaire
-        function displayVocabulary() {
-            const container = document.getElementById('vocabulary-container');
-            container.innerHTML = '';
-            
-            addColorLegend();
+    // =============================================
+    //  UI — onglets, affichage, formulaires
+    // =============================================
+    function switchTab(tabIndex) {
+        document.querySelectorAll('.tab').forEach((tab, i) => tab.classList.toggle('active', i === tabIndex));
+        document.querySelectorAll('.tab-content').forEach((c, i) => c.classList.toggle('active', i === tabIndex));
+        currentTab = tabIndex;
+        if (tabIndex === 2) loadCards(currentCategory);
+    }
 
-            const vocabulary = getAllVocabulary();
-            const customWords = getCustomWords();
-
-            for (const [category, words] of Object.entries(vocabulary)) {
-                const isCustom = customWords.hasOwnProperty(category);
-                
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = 'category' + (isCustom ? ' custom-category' : '');
-
-                const titleDiv = document.createElement('div');
-                titleDiv.className = 'category-title';
-                titleDiv.innerHTML = category + (isCustom ? ' <span class="category-badge">Mes mots</span>' : '');
-                categoryDiv.appendChild(titleDiv);
-
-                const gridDiv = document.createElement('div');
-                gridDiv.className = 'vocab-grid';
-
-                words.forEach(word => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'vocab-item';
-                    
-                    const difficulty = getWordDifficulty(word.arabic);
-                    const color = getDifficultyColor(difficulty);
-                    itemDiv.style.borderLeftColor = color;
-                    itemDiv.style.borderLeftWidth = '4px';
-
-                    const arabicDiv = document.createElement('div');
-                    arabicDiv.className = 'arabic-text';
-                    arabicDiv.textContent = word.arabic;
-
-                    const frenchDiv = document.createElement('div');
-                    frenchDiv.className = 'french-text';
-                    frenchDiv.textContent = word.french;
-
-                    itemDiv.appendChild(arabicDiv);
-                    itemDiv.appendChild(frenchDiv);
-                    gridDiv.appendChild(itemDiv);
-                });
-
-                categoryDiv.appendChild(gridDiv);
-                container.appendChild(categoryDiv);
-            }
-            
-            displayMemoryStats();
+    function displayCustomCategories() {
+        const container = document.getElementById('custom-categories-list');
+        if (!container) return;
+        const cats = getCustomCategories();
+        if (cats.length === 0) {
+            container.innerHTML = '<p style="color:#999;font-family:\'Segoe UI\',sans-serif;">Aucune catégorie personnalisée.</p>';
+            return;
         }
+        container.innerHTML = cats.map(cat => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:white;border:1px solid #e0e0dc;border-left:4px solid #e67e22;border-radius:2px;margin-bottom:8px;">
+                <span style="font-family:'Segoe UI',sans-serif;font-weight:500;">${cat}</span>
+                <button class="btn btn-danger btn-small" onclick="deleteCustomCategory('${cat.replace(/'/g, "\\'")}')">Supprimer</button>
+            </div>
+        `).join('');
+    }
 
-        // Configuration des flashcards
-        function setupFlashcards() {
-            const container = document.getElementById('flashcard-categories');
-            container.innerHTML = '';
+    function updateCategorySelects() {
+        const allCategories = [...Object.keys(baseVocabulary), ...getCustomCategories()].sort();
+        ['category-select', 'edit-category-select'].forEach(id => {
+            const sel = document.getElementById(id);
+            if (!sel) return;
+            const prev = sel.value;
+            sel.innerHTML = '<option value="">-- Choisir une catégorie --</option>' +
+                allCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+            if (prev) sel.value = prev;
+        });
+    }
 
-            const allBtn = document.createElement('button');
-            allBtn.className = 'category-btn';
-            allBtn.textContent = '📚 Tout';
-            allBtn.onclick = () => selectCategory('Tout');
-            container.appendChild(allBtn);
-
-            const vocabulary = getAllVocabulary();
-            const customWords = getCustomWords();
-            
-            for (const category of Object.keys(vocabulary)) {
-                const btn = document.createElement('button');
-                btn.className = 'category-btn' + (customWords.hasOwnProperty(category) ? ' custom' : '');
-                btn.textContent = category;
-                btn.onclick = () => selectCategory(category);
-                container.appendChild(btn);
-            }
+    function displayCustomWords() {
+        const container = document.getElementById('custom-words-display');
+        if (!container) return;
+        const customWords = getCustomWords();
+        const cats = Object.keys(customWords);
+        if (cats.length === 0) {
+            container.innerHTML = '<p style="color:#999;text-align:center;font-family:\'Segoe UI\',sans-serif;padding:20px 0;">Aucun mot personnalisé pour l\'instant.</p>';
+            return;
         }
-
-        function selectCategory(category) {
-            currentCategory = category;
-            const buttons = document.querySelectorAll('#flashcard-categories .category-btn');
-            buttons.forEach(btn => {
-                if (btn.textContent === category || (category === 'Tout' && btn.textContent === '📚 Tout')) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-            loadCards(category);
-        }
-
-        function loadCards(category) {
-            currentCards = [];
-            const vocabulary = getAllVocabulary();
-            
-            if (category === 'Tout') {
-                for (const words of Object.values(vocabulary)) {
-                    currentCards = currentCards.concat(words);
-                }
-            } else {
-                currentCards = vocabulary[category] || [];
-            }
-
-            displayAllCards();
-        }
-
-        function displayAllCards() {
-            const container = document.getElementById('flashcard-container');
-            container.innerHTML = '';
-
-            const countElement = document.getElementById('card-count');
-            if (countElement) {
-                countElement.textContent = `${currentCards.length} carte${currentCards.length > 1 ? 's' : ''}`;
-            }
-
-            if (currentCards.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">Aucune carte disponible</p>';
-                return;
-            }
-
-            currentCards.forEach((card, index) => {
-                const flashcardDiv = document.createElement('div');
-                flashcardDiv.className = 'flashcard';
-                flashcardDiv.id = `flashcard-${index}`;
-                
-                flashcardDiv.innerHTML = `
-                    <div class="flashcard-inner">
-                        <div class="flashcard-front">${card.french}</div>
-                        <div class="flashcard-back">${card.arabic}</div>
+        container.innerHTML = cats.map(cat => `
+            <div style="margin-bottom:20px;">
+                <h4 style="color:#e67e22;margin-bottom:10px;font-family:Georgia,serif;">${cat}</h4>
+                ${customWords[cat].map(w => `
+                    <div class="custom-word-item" style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:white;border:1px solid #f0d9b5;border-left:4px solid #e67e22;border-radius:2px;margin-bottom:8px;">
+                        <div>
+                            <span style="font-size:1.2em;font-weight:600;font-family:Arial,sans-serif;direction:rtl;display:inline-block;margin-right:12px;">${w.arabic}</span>
+                            <span style="color:#666;font-family:'Segoe UI',sans-serif;">${w.french}</span>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn btn-secondary btn-small" onclick="editCustomWord('${cat.replace(/'/g,"\\'")}','${w.arabic.replace(/'/g,"\\'")}')" >Modifier</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteCustomWord('${cat.replace(/'/g,"\\'")}','${w.arabic.replace(/'/g,"\\'")}')" >Supprimer</button>
+                        </div>
                     </div>
-                `;
-                
-                flashcardDiv.addEventListener('click', function() {
-                    this.classList.toggle('flipped');
-                });
-                
-                container.appendChild(flashcardDiv);
+                `).join('')}
+            </div>
+        `).join('');
+    }
+
+    function clearForm() {
+        const f = ['arabic-input','french-input'];
+        f.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    }
+
+    function displayVocabulary() {
+        const container = document.getElementById('vocabulary-container');
+        if (!container) return;
+        container.innerHTML = '';
+        addColorLegend();
+
+        const vocabulary  = getAllVocabulary();
+        const customWords = getCustomWords();
+
+        for (const [category, words] of Object.entries(vocabulary)) {
+            const isCustom = customWords.hasOwnProperty(category);
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'category' + (isCustom ? ' custom-category' : '');
+
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'category-title';
+            titleDiv.innerHTML = category + (isCustom ? ' <span class="category-badge">Mes mots</span>' : '');
+            categoryDiv.appendChild(titleDiv);
+
+            const gridDiv = document.createElement('div');
+            gridDiv.className = 'vocab-grid';
+
+            words.forEach(word => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'vocab-item';
+                const difficulty = getWordDifficulty(word.arabic);
+                itemDiv.style.borderLeftColor = getDifficultyColor(difficulty);
+                itemDiv.style.borderLeftWidth = '4px';
+
+                const arabicDiv = document.createElement('div');
+                arabicDiv.className = 'arabic-text';
+                arabicDiv.textContent = word.arabic;
+
+                const frenchDiv = document.createElement('div');
+                frenchDiv.className = 'french-text';
+                frenchDiv.textContent = word.french;
+
+                itemDiv.appendChild(arabicDiv);
+                itemDiv.appendChild(frenchDiv);
+                gridDiv.appendChild(itemDiv);
             });
+
+            categoryDiv.appendChild(gridDiv);
+            container.appendChild(categoryDiv);
         }
 
-        function flipAllCards() {
-            const allCards = document.querySelectorAll('.flashcard');
-            allCards.forEach(card => {
-                card.classList.add('flipped');
-            });
+        displayMemoryStats();
+    }
+
+    function setupFlashcards() {
+        const container = document.getElementById('flashcard-categories');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const allBtn = document.createElement('button');
+        allBtn.className = 'category-btn';
+        allBtn.textContent = '📚 Tout';
+        allBtn.onclick = () => selectCategory('Tout');
+        container.appendChild(allBtn);
+
+        const vocabulary  = getAllVocabulary();
+        const customWords = getCustomWords();
+        for (const category of Object.keys(vocabulary)) {
+            const btn = document.createElement('button');
+            btn.className = 'category-btn' + (customWords.hasOwnProperty(category) ? ' custom' : '');
+            btn.textContent = category;
+            btn.onclick = () => selectCategory(category);
+            container.appendChild(btn);
         }
+    }
 
-        function resetAllCards() {
-            const allCards = document.querySelectorAll('.flashcard');
-            allCards.forEach(card => {
-                card.classList.remove('flipped');
-            });
+    function selectCategory(category) {
+        currentCategory = category;
+        document.querySelectorAll('#flashcard-categories .category-btn').forEach(btn => {
+            btn.classList.toggle('active',
+                btn.textContent === category || (category === 'Tout' && btn.textContent === '📚 Tout'));
+        });
+        loadCards(category);
+    }
+
+    function loadCards(category) {
+        currentCards = [];
+        const vocabulary = getAllVocabulary();
+        if (category === 'Tout') {
+            for (const words of Object.values(vocabulary)) currentCards = currentCards.concat(words);
+        } else {
+            currentCards = vocabulary[category] || [];
         }
+        displayAllCards();
+    }
 
-        // Configuration du quiz
-        function setupQuiz() {
-            const container = document.getElementById('quiz-categories');
-            container.innerHTML = '';
+    function displayAllCards() {
+        const container = document.getElementById('flashcard-container');
+        if (!container) return;
+        container.innerHTML = '';
+        const countEl = document.getElementById('card-count');
+        if (countEl) countEl.textContent = `${currentCards.length} carte${currentCards.length > 1 ? 's' : ''}`;
+        if (currentCards.length === 0) {
+            container.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">Aucune carte disponible</p>';
+            return;
+        }
+        currentCards.forEach((card, index) => {
+            const div = document.createElement('div');
+            div.className = 'flashcard';
+            div.id = `flashcard-${index}`;
+            div.innerHTML = `<div class="flashcard-inner"><div class="flashcard-front">${card.french}</div><div class="flashcard-back">${card.arabic}</div></div>`;
+            div.addEventListener('click', function() { this.classList.toggle('flipped'); });
+            container.appendChild(div);
+        });
+    }
 
-            const allBtn = document.createElement('button');
-            allBtn.className = 'category-btn active';
-            allBtn.textContent = '📚 Tout le vocabulaire';
-            allBtn.onclick = () => selectQuizCategory('Tout');
-            container.appendChild(allBtn);
+    function flipAllCards()  { document.querySelectorAll('.flashcard').forEach(c => c.classList.add('flipped')); }
+    function resetAllCards() { document.querySelectorAll('.flashcard').forEach(c => c.classList.remove('flipped')); }
 
-            const vocabulary = getAllVocabulary();
-            const customWords = getCustomWords();
-            
-            for (const category of Object.keys(vocabulary)) {
+    function setupQuiz() {
+        const container = document.getElementById('quiz-categories');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const allBtn = document.createElement('button');
+        allBtn.className = 'category-btn active';
+        allBtn.textContent = '📚 Tout le vocabulaire';
+        allBtn.onclick = () => selectQuizCategory('Tout');
+        container.appendChild(allBtn);
+
+        const vocabulary  = getAllVocabulary();
+        const customWords = getCustomWords();
+        for (const category of Object.keys(vocabulary)) {
+            const btn = document.createElement('button');
+            btn.className = 'category-btn' + (customWords.hasOwnProperty(category) ? ' custom' : '');
+            btn.textContent = category;
+            btn.onclick = () => selectQuizCategory(category);
+            container.appendChild(btn);
+        }
+    }
+
+    function selectQuizCategory(category) {
+        quizCategory = category;
+        document.querySelectorAll('#quiz-categories .category-btn').forEach(btn => {
+            btn.classList.toggle('active',
+                btn.textContent === category || (category === 'Tout' && btn.textContent === '📚 Tout le vocabulaire'));
+        });
+    }
+
+    function selectQuizMode(mode) {
+        quizMode = mode;
+        document.querySelectorAll('#quiz-mode-buttons .category-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    function startQuiz() {
+        quizQuestions = [];
+        const vocabulary = getAllVocabulary();
+        if (quizCategory === 'Tout') {
+            for (const words of Object.values(vocabulary)) quizQuestions = quizQuestions.concat(words);
+        } else {
+            quizQuestions = vocabulary[quizCategory] || [];
+        }
+        if (quizQuestions.length === 0) { alert('Aucun mot disponible !'); return; }
+        quizQuestions = shuffleArray([...quizQuestions]);
+        currentQuestionIndex = 0; correctCount = 0; incorrectCount = 0;
+        document.getElementById('quiz-setup').style.display  = 'none';
+        document.getElementById('quiz-game').style.display   = 'block';
+        document.getElementById('quiz-results').style.display = 'none';
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if (currentQuestionIndex >= quizQuestions.length) { showResults(); return; }
+        answered = false; remainingAttempts = 3;
+        const question = quizQuestions[currentQuestionIndex];
+        const progress = (currentQuestionIndex / quizQuestions.length) * 100;
+        document.getElementById('progress-fill').style.width = progress + '%';
+        document.getElementById('progress-fill').textContent = Math.round(progress) + '%';
+        document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+        document.getElementById('total-questions').textContent = quizQuestions.length;
+        document.getElementById('correct-answers').textContent  = correctCount;
+        document.getElementById('incorrect-answers').textContent = incorrectCount;
+
+        if (quizMode === 'qcm') {
+            document.getElementById('qcm-mode').style.display  = 'block';
+            document.getElementById('text-mode').style.display = 'none';
+            document.getElementById('question-text').textContent  = question.french;
+            document.getElementById('question-hint').textContent  = 'Quelle est la traduction en arabe ?';
+            const options = generateOptions(question);
+            const optionsContainer = document.getElementById('answer-options');
+            optionsContainer.innerHTML = '';
+            options.forEach(option => {
                 const btn = document.createElement('button');
-                btn.className = 'category-btn' + (customWords.hasOwnProperty(category) ? ' custom' : '');
-                btn.textContent = category;
-                btn.onclick = () => selectQuizCategory(category);
-                container.appendChild(btn);
-            }
-        }
-
-        function selectQuizCategory(category) {
-            quizCategory = category;
-            const buttons = document.querySelectorAll('#quiz-categories .category-btn');
-            buttons.forEach(btn => {
-                if (btn.textContent === category || (category === 'Tout' && btn.textContent === '📚 Tout le vocabulaire')) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                btn.className = 'answer-btn';
+                btn.textContent = option.arabic;
+                btn.onclick = () => checkAnswer(option, question, btn);
+                optionsContainer.appendChild(btn);
             });
-        }
-
-        function selectQuizMode(mode) {
-            quizMode = mode;
-            const buttons = document.querySelectorAll('#quiz-mode-buttons .category-btn');
-            buttons.forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-        }
-
-        function startQuiz() {
-            quizQuestions = [];
-            const vocabulary = getAllVocabulary();
-            
-            if (quizCategory === 'Tout') {
-                for (const words of Object.values(vocabulary)) {
-                    quizQuestions = quizQuestions.concat(words);
-                }
-            } else {
-                quizQuestions = vocabulary[quizCategory] || [];
-            }
-
-            if (quizQuestions.length === 0) {
-                alert('Aucun mot disponible pour cette catégorie !');
-                return;
-            }
-
-            quizQuestions = shuffleArray([...quizQuestions]);
-
-            currentQuestionIndex = 0;
-            correctCount = 0;
-            incorrectCount = 0;
-
-            document.getElementById('quiz-setup').style.display = 'none';
-            document.getElementById('quiz-game').style.display = 'block';
-            document.getElementById('quiz-results').style.display = 'none';
-
-            showQuestion();
-        }
-
-        function showQuestion() {
-            if (currentQuestionIndex >= quizQuestions.length) {
-                showResults();
-                return;
-            }
-
-            answered = false;
-            remainingAttempts = 3;
-            const question = quizQuestions[currentQuestionIndex];
-
-            const progress = ((currentQuestionIndex) / quizQuestions.length) * 100;
-            document.getElementById('progress-fill').style.width = progress + '%';
-            document.getElementById('progress-fill').textContent = Math.round(progress) + '%';
-
-            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
-            document.getElementById('total-questions').textContent = quizQuestions.length;
-            document.getElementById('correct-answers').textContent = correctCount;
-            document.getElementById('incorrect-answers').textContent = incorrectCount;
-
-            if (quizMode === 'qcm') {
-                document.getElementById('qcm-mode').style.display = 'block';
-                document.getElementById('text-mode').style.display = 'none';
-                
-                document.getElementById('question-text').textContent = question.french;
-                document.getElementById('question-hint').textContent = 'Quelle est la traduction en arabe ?';
-
-                const options = generateOptions(question);
-                const optionsContainer = document.getElementById('answer-options');
-                optionsContainer.innerHTML = '';
-
-                options.forEach((option, index) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'answer-btn';
-                    btn.textContent = option.arabic;
-                    btn.onclick = () => checkAnswer(option, question, btn);
-                    optionsContainer.appendChild(btn);
-                });
-            } else {
-                document.getElementById('qcm-mode').style.display = 'none';
-                document.getElementById('text-mode').style.display = 'block';
-                
-                document.getElementById('question-text').textContent = question.arabic;
-                document.getElementById('question-hint').textContent = 'Écrivez la traduction en français';
-
-                const input = document.getElementById('text-answer-input');
-                input.value = '';
-                input.className = 'text-input';
-                input.disabled = false;
-                input.focus();
-                
-                document.getElementById('feedback-container').innerHTML = '';
-                document.getElementById('remaining-attempts').textContent = '3';
-                document.getElementById('submit-answer-btn').disabled = false;
-                
-                input.onkeypress = function(e) {
-                    if (e.key === 'Enter' && !answered) {
-                        checkTextAnswer();
-                    }
-                };
-            }
-
-            document.getElementById('next-question-btn').style.display = 'none';
-        }
-
-        function checkTextAnswer() {
-            if (answered) return;
-
+        } else {
+            document.getElementById('qcm-mode').style.display  = 'none';
+            document.getElementById('text-mode').style.display = 'block';
+            document.getElementById('question-text').textContent = question.arabic;
+            document.getElementById('question-hint').textContent = 'Écrivez la traduction en français';
             const input = document.getElementById('text-answer-input');
-            const userAnswer = input.value.trim();
-            const question = quizQuestions[currentQuestionIndex];
-            const correctAnswer = question.french;
+            input.value = ''; input.className = 'text-input'; input.disabled = false; input.focus();
+            document.getElementById('feedback-container').innerHTML = '';
+            document.getElementById('remaining-attempts').textContent = '3';
+            document.getElementById('submit-answer-btn').disabled = false;
+            input.onkeypress = function(e) { if (e.key === 'Enter' && !answered) checkTextAnswer(); };
+        }
+        document.getElementById('next-question-btn').style.display = 'none';
+    }
 
-            const normalizedUser = normalizeText(userAnswer);
-            const normalizedCorrect = normalizeText(correctAnswer);
+    function checkTextAnswer() {
+        if (answered) return;
+        const input = document.getElementById('text-answer-input');
+        const userAnswer = input.value.trim();
+        const question = quizQuestions[currentQuestionIndex];
+        const correctAnswer = question.french;
+        const feedbackContainer = document.getElementById('feedback-container');
 
-            const feedbackContainer = document.getElementById('feedback-container');
-            
-            if (normalizedUser === normalizedCorrect) {
-                answered = true;
-                correctCount++;
-                
-                input.className = 'text-input correct';
-                input.disabled = true;
-                
-                feedbackContainer.innerHTML = `
-                    <div class="feedback-message success">
-                        ✓ Correct ! La réponse était bien : <strong>${correctAnswer}</strong>
-                    </div>
-                `;
-                
+        if (normalizeText(userAnswer) === normalizeText(correctAnswer)) {
+            answered = true; correctCount++;
+            input.className = 'text-input correct'; input.disabled = true;
+            feedbackContainer.innerHTML = `<div class="feedback-message success">✓ Correct ! La réponse était bien : <strong>${correctAnswer}</strong></div>`;
+            document.getElementById('submit-answer-btn').disabled = true;
+            document.getElementById('next-question-btn').style.display = 'inline-block';
+            updateWordStats(question.arabic, true);
+            displayVocabulary();
+            document.getElementById('correct-answers').textContent = correctCount;
+        } else {
+            remainingAttempts--;
+            document.getElementById('remaining-attempts').textContent = remainingAttempts;
+            if (remainingAttempts > 0) {
+                input.className = 'text-input incorrect';
+                feedbackContainer.innerHTML = `<div class="feedback-message error">✗ Incorrect. Il vous reste ${remainingAttempts} tentative${remainingAttempts > 1 ? 's' : ''}.</div>`;
+                input.select();
+            } else {
+                answered = true; incorrectCount++;
+                input.className = 'text-input incorrect'; input.disabled = true;
+                feedbackContainer.innerHTML = `<div class="feedback-message error">✗ La bonne réponse était : <strong>${correctAnswer}</strong></div>`;
                 document.getElementById('submit-answer-btn').disabled = true;
                 document.getElementById('next-question-btn').style.display = 'inline-block';
-                
-                updateWordStats(question.arabic, true);
+                updateWordStats(question.arabic, false);
                 displayVocabulary();
-                
-                document.getElementById('correct-answers').textContent = correctCount;
-            } else {
-                remainingAttempts--;
-                document.getElementById('remaining-attempts').textContent = remainingAttempts;
-                
-                if (remainingAttempts > 0) {
-                    input.className = 'text-input incorrect';
-                    
-                    feedbackContainer.innerHTML = `
-                        <div class="feedback-message error">
-                            ✗ Incorrect. Il vous reste ${remainingAttempts} tentative${remainingAttempts > 1 ? 's' : ''}. Réessayez !
-                        </div>
-                    `;
-                    
-                    input.select();
-                } else {
-                    answered = true;
-                    incorrectCount++;
-                    
-                    input.className = 'text-input incorrect';
-                    input.disabled = true;
-                    
-                    feedbackContainer.innerHTML = `
-                        <div class="feedback-message error">
-                            ✗ Aucune tentative restante. La bonne réponse était : <strong>${correctAnswer}</strong>
-                        </div>
-                    `;
-                    
-                    document.getElementById('submit-answer-btn').disabled = true;
-                    document.getElementById('next-question-btn').style.display = 'inline-block';
-                    
-                    updateWordStats(question.arabic, false);
-                    displayVocabulary();
-                    
-                    document.getElementById('incorrect-answers').textContent = incorrectCount;
-                }
+                document.getElementById('incorrect-answers').textContent = incorrectCount;
             }
         }
+    }
 
-        function normalizeText(text) {
-            return text
-                .toLowerCase()
-                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                .replace(/[^\w\s]/g, '')
-                .replace(/\s+/g, ' ')
-                .trim();
+    function normalizeText(text) {
+        return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/g,'').replace(/\s+/g,' ').trim();
+    }
+
+    function generateOptions(correctAnswer) {
+        const allWords = [];
+        for (const words of Object.values(getAllVocabulary())) allWords.push(...words);
+        const options = [correctAnswer];
+        const used = new Set([correctAnswer.arabic]);
+        while (options.length < 4 && allWords.length >= 4) {
+            const rnd = allWords[Math.floor(Math.random() * allWords.length)];
+            if (!used.has(rnd.arabic)) { options.push(rnd); used.add(rnd.arabic); }
         }
+        return shuffleArray(options);
+    }
 
-        function generateOptions(correctAnswer) {
-            const vocabulary = getAllVocabulary();
-            const allWords = [];
-            for (const words of Object.values(vocabulary)) {
-                allWords.push(...words);
-            }
-
-            const options = [correctAnswer];
-            const usedArabic = new Set([correctAnswer.arabic]);
-
-            while (options.length < 4 && allWords.length >= 4) {
-                const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
-                if (!usedArabic.has(randomWord.arabic)) {
-                    options.push(randomWord);
-                    usedArabic.add(randomWord.arabic);
-                }
-            }
-
-            return shuffleArray(options);
+    function checkAnswer(selected, correct, btn) {
+        if (answered) return;
+        answered = true;
+        document.querySelectorAll('.answer-btn').forEach(b => b.style.pointerEvents = 'none');
+        const isCorrect = selected.arabic === correct.arabic;
+        if (isCorrect) { btn.classList.add('correct'); correctCount++; }
+        else {
+            btn.classList.add('incorrect');
+            document.querySelectorAll('.answer-btn').forEach(b => { if (b.textContent === correct.arabic) b.classList.add('correct'); });
+            incorrectCount++;
         }
+        updateWordStats(correct.arabic, isCorrect);
+        displayVocabulary();
+        document.getElementById('correct-answers').textContent  = correctCount;
+        document.getElementById('incorrect-answers').textContent = incorrectCount;
+        document.getElementById('next-question-btn').style.display = 'inline-block';
+    }
 
-        function checkAnswer(selected, correct, btn) {
-            if (answered) return;
-            answered = true;
+    function nextQuestion() { currentQuestionIndex++; showQuestion(); }
 
-            const buttons = document.querySelectorAll('.answer-btn');
-            buttons.forEach(b => b.style.pointerEvents = 'none');
+    function showResults() {
+        document.getElementById('quiz-game').style.display    = 'none';
+        document.getElementById('quiz-results').style.display = 'block';
+        const pct = Math.round((correctCount / quizQuestions.length) * 100);
+        document.getElementById('final-score').textContent = `${correctCount} / ${quizQuestions.length} (${pct}%)`;
+        const msgs = {
+            100: '🎉 Parfait ! Vous maîtrisez ce vocabulaire !',
+            80:  '👏 Excellent travail ! Continuez comme ça !',
+            60:  '👍 Bon travail ! Encore un peu de pratique !',
+            0:   '💪 Continuez à pratiquer ! Vous progresserez rapidement !'
+        };
+        document.getElementById('results-message').textContent =
+            pct === 100 ? msgs[100] : pct >= 80 ? msgs[80] : pct >= 60 ? msgs[60] : msgs[0];
+    }
 
-            const isCorrect = selected.arabic === correct.arabic;
+    function restartQuiz() {
+        document.getElementById('quiz-setup').style.display   = 'block';
+        document.getElementById('quiz-game').style.display    = 'none';
+        document.getElementById('quiz-results').style.display = 'none';
+    }
 
-            if (isCorrect) {
-                btn.classList.add('correct');
-                correctCount++;
-            } else {
-                btn.classList.add('incorrect');
-                buttons.forEach(b => {
-                    if (b.textContent === correct.arabic) {
-                        b.classList.add('correct');
-                    }
-                });
-                incorrectCount++;
-            }
-
-            updateWordStats(correct.arabic, isCorrect);
-            displayVocabulary();
-
-            document.getElementById('correct-answers').textContent = correctCount;
-            document.getElementById('incorrect-answers').textContent = incorrectCount;
-            document.getElementById('next-question-btn').style.display = 'inline-block';
+    function shuffleArray(array) {
+        const a = [...array];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
         }
+        return a;
+    }
 
-        function nextQuestion() {
-            currentQuestionIndex++;
-            showQuestion();
+    function displayMemoryStats() {
+        const memory = getVocabMemory();
+        const total  = Object.keys(memory).length;
+        let veryHard = 0, hard = 0, learning = 0, mastered = 0;
+        for (const word in memory) {
+            const d = getWordDifficulty(word);
+            if (d === 'very-hard') veryHard++;
+            else if (d === 'hard') hard++;
+            else if (d === 'learning') learning++;
+            else if (d === 'mastered') mastered++;
         }
-
-        function showResults() {
-            document.getElementById('quiz-game').style.display = 'none';
-            document.getElementById('quiz-results').style.display = 'block';
-
-            const percentage = Math.round((correctCount / quizQuestions.length) * 100);
-            document.getElementById('final-score').textContent = `${correctCount} / ${quizQuestions.length} (${percentage}%)`;
-
-            let message = '';
-            if (percentage === 100) {
-                message = '🎉 Parfait ! Vous maîtrisez ce vocabulaire !';
-            } else if (percentage >= 80) {
-                message = '👏 Excellent travail ! Continuez comme ça !';
-            } else if (percentage >= 60) {
-                message = '👍 Bon travail ! Encore un peu de pratique et ce sera parfait !';
-            } else {
-                message = '💪 Continuez à pratiquer ! Vous progresserez rapidement !';
-            }
-
-            document.getElementById('results-message').textContent = message;
+        const statsDiv = document.getElementById('memory-stats');
+        if (statsDiv && total > 0) {
+            statsDiv.innerHTML = `<strong>Progression :</strong> <span style="color:#28a745;">✓ ${mastered} maîtrisés</span> | <span style="color:#ffc107;">⚡ ${learning} en cours</span> | <span style="color:#fd7e14;">⚠ ${hard} difficiles</span> | <span style="color:#dc3545;">✗ ${veryHard} à revoir</span>`;
         }
+    }
 
-        function restartQuiz() {
-            document.getElementById('quiz-setup').style.display = 'block';
-            document.getElementById('quiz-game').style.display = 'none';
-            document.getElementById('quiz-results').style.display = 'none';
+    function addColorLegend() {
+        const container = document.getElementById('vocabulary-container');
+        const legendDiv = document.createElement('div');
+        legendDiv.style.cssText = 'background:#fafaf8;padding:20px;border-radius:2px;margin-bottom:30px;border:1px solid #e0e0dc;text-align:center;';
+        legendDiv.innerHTML = `
+            <h3 style="color:#2c5f2d;margin-bottom:15px;font-size:1.2em;">📊 Légende des couleurs</h3>
+            <div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap;font-size:0.95em;">
+                <div><span style="display:inline-block;width:20px;height:20px;background:#dc3545;vertical-align:middle;margin-right:5px;"></span> À revoir (4+ erreurs)</div>
+                <div><span style="display:inline-block;width:20px;height:20px;background:#fd7e14;vertical-align:middle;margin-right:5px;"></span> Difficile (2-3 erreurs)</div>
+                <div><span style="display:inline-block;width:20px;height:20px;background:#ffc107;vertical-align:middle;margin-right:5px;"></span> En apprentissage</div>
+                <div><span style="display:inline-block;width:20px;height:20px;background:#28a745;vertical-align:middle;margin-right:5px;"></span> Maîtrisé (70%+ réussite)</div>
+                <div><span style="display:inline-block;width:20px;height:20px;background:#97bc62;vertical-align:middle;margin-right:5px;"></span> Non testé</div>
+            </div>
+        `;
+        container.insertBefore(legendDiv, container.firstChild);
+    }
+
+    // =============================================
+    //  CANVAS (reconnaissance manuscrite — inchangé)
+    // =============================================
+    let canvas, ctx, isDrawing = false, strokes = [], currentStroke = [], recognizedTextContent = '';
+
+    function initCanvas() {
+        canvas = document.getElementById('drawing-canvas');
+        if (!canvas) return;
+        ctx = canvas.getContext('2d');
+        ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1a3a1b';
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+    }
+
+    function getCanvasCoordinates(e) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (e.clientX - rect.left) * (canvas.width / rect.width),
+            y: (e.clientY - rect.top)  * (canvas.height / rect.height)
+        };
+    }
+
+    function startDrawing(e) {
+        isDrawing = true; currentStroke = [];
+        const pos = getCanvasCoordinates(e);
+        ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+        currentStroke.push(pos);
+    }
+
+    function draw(e) {
+        if (!isDrawing) return;
+        const pos = getCanvasCoordinates(e);
+        ctx.lineTo(pos.x, pos.y); ctx.stroke();
+        currentStroke.push(pos);
+    }
+
+    function stopDrawing() {
+        if (!isDrawing) return;
+        isDrawing = false;
+        if (currentStroke.length > 0) { strokes.push([...currentStroke]); currentStroke = []; }
+    }
+
+    function handleTouchStart(e) { e.preventDefault(); startDrawing(e.touches[0]); }
+    function handleTouchMove(e)  { e.preventDefault(); draw(e.touches[0]); }
+
+    function clearCanvas() {
+        if (!canvas) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        strokes = []; currentStroke = [];
+        const el = document.getElementById('recognized-text');
+        if (el) { el.textContent = ''; el.style.display = 'none'; }
+    }
+
+    function useRecognizedText() {
+        const el = document.getElementById('recognized-text');
+        const arabicInput = document.getElementById('arabic-input');
+        if (el && arabicInput && el.textContent) {
+            arabicInput.value = el.textContent;
+            switchTab(1);
         }
+    }
 
-        function shuffleArray(array) {
-            const newArray = [...array];
-            for (let i = newArray.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-            }
-            return newArray;
-        }
-
-        function displayMemoryStats() {
-            const memory = getVocabMemory();
-            const totalWords = Object.keys(memory).length;
-            
-            let veryHard = 0, hard = 0, learning = 0, mastered = 0;
-            
-            for (const word in memory) {
-                const diff = getWordDifficulty(word);
-                if (diff === 'very-hard') veryHard++;
-                else if (diff === 'hard') hard++;
-                else if (diff === 'learning') learning++;
-                else if (diff === 'mastered') mastered++;
-            }
-
-            const statsDiv = document.getElementById('memory-stats');
-            if (totalWords > 0) {
-                statsDiv.innerHTML = `
-                    <strong>Progression :</strong> 
-                    <span style="color: #28a745;">✓ ${mastered} maîtrisés</span> | 
-                    <span style="color: #ffc107;">⚡ ${learning} en cours</span> | 
-                    <span style="color: #fd7e14;">⚠ ${hard} difficiles</span> | 
-                    <span style="color: #dc3545;">✗ ${veryHard} à revoir</span>
-                `;
-            }
-        }
-
-        function addColorLegend() {
-            const container = document.getElementById('vocabulary-container');
-            
-            const legendDiv = document.createElement('div');
-            legendDiv.style.cssText = `
-                background: #fafaf8;
-                padding: 20px;
-                border-radius: 2px;
-                margin-bottom: 30px;
-                border: 1px solid #e0e0dc;
-                text-align: center;
-            `;
-            
-            legendDiv.innerHTML = `
-                <h3 style="color: #2c5f2d; margin-bottom: 15px; font-size: 1.2em;">📊 Légende des couleurs</h3>
-                <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; font-size: 0.95em;">
-                    <div><span style="display: inline-block; width: 20px; height: 20px; background: #dc3545; vertical-align: middle; margin-right: 5px;"></span> À revoir (4+ erreurs)</div>
-                    <div><span style="display: inline-block; width: 20px; height: 20px; background: #fd7e14; vertical-align: middle; margin-right: 5px;"></span> Difficile (2-3 erreurs)</div>
-                    <div><span style="display: inline-block; width: 20px; height: 20px; background: #ffc107; vertical-align: middle; margin-right: 5px;"></span> En apprentissage</div>
-                    <div><span style="display: inline-block; width: 20px; height: 20px; background: #28a745; vertical-align: middle; margin-right: 5px;"></span> Maîtrisé (70%+ réussite)</div>
-                    <div><span style="display: inline-block; width: 20px; height: 20px; background: #97bc62; vertical-align: middle; margin-right: 5px;"></span> Non testé</div>
-                </div>
-            `;
-            
-            container.insertBefore(legendDiv, container.firstChild);
-        }
-
-        function resetMemory() {
-            if (confirm('⚠️ Êtes-vous sûr de vouloir réinitialiser toutes vos statistiques d\'apprentissage ?')) {
-                localStorage.removeItem(STORAGE_KEY);
-                displayVocabulary();
-                displayMemoryStats();
-                alert('✅ Statistiques réinitialisées avec succès !');
-            }
-        }
-
-        // ===== RECONNAISSANCE D'ÉCRITURE MANUSCRITE =====
-        
-        let canvas, ctx;
-        let isDrawing = false;
-        let strokes = [];
-        let currentStroke = [];
-        let recognizedTextContent = '';
-
-        function initCanvas() {
-            canvas = document.getElementById('drawing-canvas');
-            if (!canvas) return;
-            
-            ctx = canvas.getContext('2d');
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.strokeStyle = '#1a3a1b';
-
-            // Mouse events
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseout', stopDrawing);
-
-            // Touch events
-            canvas.addEventListener('touchstart', handleTouchStart);
-            canvas.addEventListener('touchmove', handleTouchMove);
-            canvas.addEventListener('touchend', stopDrawing);
-        }
-
-        function getCanvasCoordinates(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            
-            let x, y;
-            if (e.touches && e.touches.length > 0) {
-                x = (e.touches[0].clientX - rect.left) * scaleX;
-                y = (e.touches[0].clientY - rect.top) * scaleY;
-            } else {
-                x = (e.clientX - rect.left) * scaleX;
-                y = (e.clientY - rect.top) * scaleY;
-            }
-            
-            return { x, y };
-        }
-
-        function startDrawing(e) {
-            e.preventDefault();
-            isDrawing = true;
-            const coords = getCanvasCoordinates(e);
-            currentStroke = [coords];
-            
-            ctx.beginPath();
-            ctx.moveTo(coords.x, coords.y);
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-            
-            const coords = getCanvasCoordinates(e);
-            currentStroke.push(coords);
-            
-            ctx.lineTo(coords.x, coords.y);
-            ctx.stroke();
-        }
-
-        function stopDrawing(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-            
-            isDrawing = false;
-            if (currentStroke.length > 0) {
-                strokes.push([...currentStroke]);
-                currentStroke = [];
-            }
-        }
-
-        function handleTouchStart(e) {
-            e.preventDefault();
-            startDrawing(e);
-        }
-
-        function handleTouchMove(e) {
-            e.preventDefault();
-            draw(e);
-        }
-
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            strokes = [];
-            currentStroke = [];
-            
-            // Reset display
-            const textDiv = document.getElementById('recognized-text');
-            textDiv.className = 'recognized-text empty';
-            textDiv.textContent = 'Dessinez pour voir le résultat...';
-            textDiv.contentEditable = 'false';
-            
-            document.getElementById('copy-text-btn').style.display = 'none';
-            document.getElementById('use-in-form-btn').style.display = 'none';
-            document.getElementById('alternative-results').style.display = 'none';
-            document.getElementById('harakat-panel').style.display = 'none';
-            
-            recognizedTextContent = '';
-        }
-
-        function insertHarakat(harakat) {
-            const textDiv = document.getElementById('recognized-text');
-            
-            // Si le div n'est pas éditable ou vide, on ne fait rien
-            if (textDiv.classList.contains('empty')) {
-                return;
-            }
-
-            // Obtenir la sélection actuelle
-            const selection = window.getSelection();
-            
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                
-                // Créer un nœud texte avec le harakat
-                const harakatNode = document.createTextNode(harakat);
-                
-                // Insérer le harakat à la position du curseur
-                range.deleteContents();
-                range.insertNode(harakatNode);
-                
-                // Déplacer le curseur après le harakat inséré
-                range.setStartAfter(harakatNode);
-                range.setEndAfter(harakatNode);
-                selection.removeAllRanges();
-                selection.addRange(range);
-                
-                // Mettre à jour le contenu reconnu
-                recognizedTextContent = textDiv.textContent;
-                
-                // Garder le focus sur le div
-                textDiv.focus();
-            }
-        }
-
-        function deleteLastChar() {
-            const textDiv = document.getElementById('recognized-text');
-            
-            if (textDiv.classList.contains('empty')) {
-                return;
-            }
-
-            const text = textDiv.textContent;
-            if (text.length > 0) {
-                textDiv.textContent = text.slice(0, -1);
-                recognizedTextContent = textDiv.textContent;
-                
-                // Placer le curseur à la fin
-                const range = document.createRange();
-                const selection = window.getSelection();
-                range.selectNodeContents(textDiv);
-                range.collapse(false);
-                selection.removeAllRanges();
-                selection.addRange(range);
-                
-                textDiv.focus();
-            }
-        }
-
-        function makeTextEditable(textDiv) {
-            textDiv.contentEditable = 'true';
-            textDiv.classList.add('editable-text');
-            
-            // Event listener pour mettre à jour recognizedTextContent quand l'utilisateur édite
-            textDiv.addEventListener('input', function() {
-                recognizedTextContent = this.textContent;
-            });
-            
-            // Focus automatique pour montrer que c'est éditable
-            textDiv.focus();
-            
-            // Placer le curseur à la fin
-            const range = document.createRange();
-            const selection = window.getSelection();
-            range.selectNodeContents(textDiv);
-            range.collapse(false);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        }
-
-        async function recognizeHandwriting() {
-            if (strokes.length === 0) {
-                alert('⚠️ Veuillez d\'abord dessiner quelque chose !');
-                return;
-            }
-
-            const textDiv = document.getElementById('recognized-text');
-            textDiv.className = 'recognized-text empty';
-            textDiv.textContent = '⏳ Reconnaissance en cours...';
-
-            try {
-                // Préparer les données pour l'API Google Input Tools
-                const ink = strokes.map(stroke => {
-                    return [
-                        stroke.map(p => p.x),
-                        stroke.map(p => p.y)
-                    ];
-                });
-
-                const requestData = {
-                    options: 'enable_pre_space',
-                    requests: [{
-                        writing_guide: {
-                            writing_area_width: canvas.width,
-                            writing_area_height: canvas.height
-                        },
-                        ink: ink,
-                        language: 'ar'
-                    }]
-                };
-
-                const response = await fetch('https://www.google.com/inputtools/request?ime=handwriting&app=arabicvocab&cs=1&oe=UTF-8', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestData)
-                });
-
-                if (!response.ok) {
-                    throw new Error('Erreur de reconnaissance');
-                }
-
-                const data = await response.json();
-                
-                if (data && data[1] && data[1][0] && data[1][0][1] && data[1][0][1].length > 0) {
-                    const results = data[1][0][1];
-                    recognizedTextContent = results[0];
-                    
-                    textDiv.className = 'recognized-text';
-                    textDiv.textContent = recognizedTextContent;
-                    
-                    // Rendre le texte éditable
-                    makeTextEditable(textDiv);
-                    
-                    document.getElementById('copy-text-btn').style.display = 'inline-block';
-                    document.getElementById('use-in-form-btn').style.display = 'inline-block';
-                    document.getElementById('harakat-panel').style.display = 'block';
-                    
-                    // Afficher les alternatives
-                    if (results.length > 1) {
-                        const alternativesList = document.getElementById('alternatives-list');
-                        alternativesList.innerHTML = results.slice(1, 6).map(alt => 
-                            `<span class="alternative-item" onclick="selectAlternative('${alt}')">${alt}</span>`
-                        ).join('');
-                        document.getElementById('alternative-results').style.display = 'block';
-                    } else {
-                        document.getElementById('alternative-results').style.display = 'none';
-                    }
-                } else {
-                    textDiv.className = 'recognized-text empty';
-                    textDiv.textContent = '❌ Aucun texte reconnu. Essayez d\'écrire plus clairement.';
-                    textDiv.contentEditable = 'false';
-                    document.getElementById('copy-text-btn').style.display = 'none';
-                    document.getElementById('use-in-form-btn').style.display = 'none';
-                    document.getElementById('harakat-panel').style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Erreur de reconnaissance:', error);
-                textDiv.className = 'recognized-text empty';
-                textDiv.textContent = '❌ Erreur lors de la reconnaissance. Veuillez réessayer.';
-                textDiv.contentEditable = 'false';
-                document.getElementById('copy-text-btn').style.display = 'none';
-                document.getElementById('use-in-form-btn').style.display = 'none';
-                document.getElementById('harakat-panel').style.display = 'none';
-            }
-        }
-
-        function selectAlternative(text) {
-            recognizedTextContent = text;
-            const textDiv = document.getElementById('recognized-text');
-            textDiv.className = 'recognized-text';
-            textDiv.textContent = text;
-            
-            // Rendre le texte éditable
-            makeTextEditable(textDiv);
-            
-            // Afficher le panneau de harakats
-            document.getElementById('harakat-panel').style.display = 'block';
-        }
-
-        function copyRecognizedText() {
-            if (!recognizedTextContent) {
-                alert('⚠️ Aucun texte à copier !');
-                return;
-            }
-
-            navigator.clipboard.writeText(recognizedTextContent).then(() => {
-                const btn = document.getElementById('copy-text-btn');
-                const originalText = btn.textContent;
-                btn.textContent = '✅ Copié !';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            }).catch(err => {
-                // Fallback pour les anciens navigateurs
-                const textarea = document.createElement('textarea');
-                textarea.value = recognizedTextContent;
-                textarea.style.position = 'fixed';
-                textarea.style.opacity = '0';
-                document.body.appendChild(textarea);
-                textarea.select();
-                try {
-                    document.execCommand('copy');
-                    alert('✅ Texte copié !');
-                } catch (e) {
-                    alert('❌ Erreur lors de la copie');
-                }
-                document.body.removeChild(textarea);
-            });
-        }
-
-        function useInForm() {
-            if (!recognizedTextContent) {
-                alert('⚠️ Aucun texte reconnu !');
-                return;
-            }
-
-            document.getElementById('word-arabic').value = recognizedTextContent;
-            
-            // Scroll vers le formulaire
-            document.querySelector('.add-word-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            // Focus sur le champ de traduction
-            setTimeout(() => {
-                document.getElementById('word-french').focus();
-            }, 500);
-            
-            alert('✅ Texte inséré dans le formulaire !');
-        }
     </script>
 </body>
 </html>
