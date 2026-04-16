@@ -1551,9 +1551,15 @@
         baseVocabulary = {};
         customWordsCache = {};
         wordStatsCache = {};
-        document.getElementById('auth-overlay').style.display = 'flex';
+        // Reset login button
+        const btn = document.getElementById('login-btn');
+        btn.textContent = 'Connexion / Créer un compte';
+        btn.disabled = false;
+        document.getElementById('auth-error').style.display = 'none';
         document.getElementById('username-input').value = '';
         document.getElementById('user-greeting').textContent = '';
+        document.getElementById('auth-overlay').style.display = 'flex';
+        setTimeout(() => document.getElementById('username-input').focus(), 100);
     }
 
     // =============================================
