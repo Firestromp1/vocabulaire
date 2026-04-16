@@ -1181,9 +1181,9 @@
     <div id="auth-overlay" style="display:flex;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1000;justify-content:center;align-items:center;">
         <div style="background:white;padding:40px;border-radius:4px;max-width:380px;width:90%;border-top:5px solid #2c5f2d;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
             <h2 style="color:#2c5f2d;margin-bottom:8px;font-family:Georgia,serif;font-size:1.8em;">📚 Vocabulaire Arabe</h2>
-            <p style="color:#666;margin-bottom:25px;font-family:'Segoe UI',sans-serif;">Mettre son identifiant</p>
+            <p style="color:#666;margin-bottom:25px;font-family:'Segoe UI',sans-serif;">Entrez votre identifiant pour accéder à vos mots</p>
             <div id="auth-error" style="display:none;background:#fee;color:#c0392b;padding:10px;border-radius:2px;margin-bottom:15px;font-family:'Segoe UI',sans-serif;font-size:0.9em;"></div>
-            <input id="username-input" type="text" placeholder="Pseudo :" autocomplete="off"
+            <input id="username-input" type="text" placeholder="Votre identifiant (ex: adam123)" autocomplete="off"
                 style="width:100%;padding:14px;border:2px solid #d4d4d0;border-radius:2px;font-size:1em;font-family:'Segoe UI',sans-serif;box-sizing:border-box;margin-bottom:15px;"
                 onkeydown="if(event.key==='Enter')loginUser()"
             />
@@ -1191,7 +1191,7 @@
                 style="width:100%;padding:14px;background:#2c5f2d;color:white;border:none;border-radius:2px;font-size:1.05em;font-weight:600;cursor:pointer;font-family:'Segoe UI',sans-serif;">
                 Connexion / Créer un compte
             </button>
-            <p style="margin-top:12px;color:#999;font-size:0.8em;text-align:center;font-family:'Segoe UI',sans-serif;">Faire attention à bien orthographier le pseudo</p>
+            <p style="margin-top:12px;color:#999;font-size:0.8em;text-align:center;font-family:'Segoe UI',sans-serif;">Aucun mot de passe requis — vos mots vous suivent partout</p>
         </div>
     </div>
 
@@ -2379,60 +2379,53 @@
     // =============================================
     function insertHarakat(harakat) {
         const textDiv = document.getElementById('recognized-text');
-        
-        // Si le div n'est pas éditable ou vide, on ne fait rien
-        if (textDiv.classList.contains('empty')) {
-        return;
+        if (textDiv.classList.contains('empty')) return;
+
+        // Essaie d'insérer à la position du curseur si le focus est dans le div,
+        // sinon ajoute simplement à la fin
+        const selection = window.getSelection();
+        const cursorInDiv = selection.rangeCount > 0 && textDiv.contains(selection.getRangeAt(0).startContainer);
+
+        if (cursorInDiv) {
+            const range = selection.getRangeAt(0);
+            const harakatNode = document.createTextNode(harakat);
+            range.deleteContents();
+            range.insertNode(harakatNode);
+            range.setStartAfter(harakatNode);
+            range.setEndAfter(harakatNode);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        } else {
+            // Pas de curseur dans le div → ajoute à la fin, c'est plus simple
+            textDiv.textContent = textDiv.textContent + harakat;
+            // Replace cursor at end
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(textDiv);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
         }
 
-        // Obtenir la sélection actuelle
-        const selection = window.getSelection();
-        
-        if (selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        
-        // Créer un nœud texte avec le harakat
-        const harakatNode = document.createTextNode(harakat);
-        
-        // Insérer le harakat à la position du curseur
-        range.deleteContents();
-        range.insertNode(harakatNode);
-        
-        // Déplacer le curseur après le harakat inséré
-        range.setStartAfter(harakatNode);
-        range.setEndAfter(harakatNode);
-        selection.removeAllRanges();
-        selection.addRange(range);
-        
-        // Mettre à jour le contenu reconnu
         recognizedTextContent = textDiv.textContent;
-        
-        // Garder le focus sur le div
         textDiv.focus();
-        }
     }
 
     function deleteLastChar() {
         const textDiv = document.getElementById('recognized-text');
-        
-        if (textDiv.classList.contains('empty')) {
-        return;
-        }
+        if (textDiv.classList.contains('empty')) return;
 
         const text = textDiv.textContent;
         if (text.length > 0) {
-        textDiv.textContent = text.slice(0, -1);
-        recognizedTextContent = textDiv.textContent;
-        
-        // Placer le curseur à la fin
-        const range = document.createRange();
-        const selection = window.getSelection();
-        range.selectNodeContents(textDiv);
-        range.collapse(false);
-        selection.removeAllRanges();
-        selection.addRange(range);
-        
-        textDiv.focus();
+            textDiv.textContent = text.slice(0, -1);
+            recognizedTextContent = textDiv.textContent;
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(textDiv);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            textDiv.focus();
         }
     }
 
